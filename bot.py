@@ -9,6 +9,7 @@ from tgbot.config import load_config
 from tgbot.filters.admin import AdminFilter
 from tgbot.handlers.echo import register_echo
 from tgbot.middlewares.db import DbMiddleware
+from tgbot.middlewares.throttling import ThrottlingMiddleware
 from tgbot.services import set_bot_commands
 from tgbot.services.notifications import notify_admins
 
@@ -17,6 +18,7 @@ logger = logging.getLogger(__name__)
 
 def register_all_middlewares(dp):
     dp.setup_middleware(DbMiddleware())
+    dp.setup_middleware(ThrottlingMiddleware())
 
 
 def register_all_filters(dp):
@@ -47,13 +49,13 @@ async def main():
     register_all_filters(dp)
     register_all_handlers(dp)
 
-    # устанавливаем стандартные команды
+    # Установка стандартных команд
     await set_bot_commands.set_default_commands(dp)
 
-    # уведомляем администраторов о запуске
+    # Уведомление администраторов бота о запуске
     await notify_admins.on_startup_notify(dp)
 
-    # start
+    # Запуск бота
     try:
         await dp.start_polling()
     finally:
