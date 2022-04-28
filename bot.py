@@ -49,13 +49,13 @@ async def main():
     register_all_filters(dp)
     register_all_handlers(dp)
 
-    # Установка стандартных команд
+    # Установка стандартных команд:
     await set_bot_commands.set_default_commands(dp)
 
-    # Уведомление администраторов бота о запуске
+    # Уведомление администраторов бота о запуске:
     await notify_admins.on_startup_notify(dp)
 
-    # Запуск бота
+    # Запуск бота:
     try:
         await dp.start_polling()
     finally:
