@@ -9,8 +9,9 @@ from tgbot.config import load_config
 from tgbot.filters.admin import AdminFilter
 from tgbot.handlers.echo import register_echo
 from tgbot.handlers.users.process_bot_start import register_process_bot_start
+from tgbot.handlers.users.process_fill_text_questionnaire import register_process_fill_text_questionnaire
 from tgbot.handlers.users.process_main_menu import register_process_main_menu
-from tgbot.handlers.users.process_questionnaire import register_process_questionnaire
+from tgbot.handlers.users.process_create_text_questionnaire import register_process_questionnaire
 from tgbot.middlewares.db import DbMiddleware
 from tgbot.middlewares.throttling import ThrottlingMiddleware
 from tgbot.services import set_bot_commands
@@ -35,6 +36,9 @@ def register_all_handlers(dp):
     register_process_bot_start(dp)
     register_process_main_menu(dp)
     register_process_questionnaire(dp)
+
+    register_process_fill_text_questionnaire(dp)
+
     register_echo(dp)
 
 

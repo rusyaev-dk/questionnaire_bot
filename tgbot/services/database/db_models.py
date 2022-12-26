@@ -7,6 +7,7 @@ class User(TimeBaseModel):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True)
+    user_questionnaires = Column(ARRAY(String(500)), default=[])
     name = Column(String(100))
 
     query: sql.Select
@@ -20,5 +21,17 @@ class Questionnaire(BaseModel):
     title = Column(String(100))
     questions_quantity = Column(Integer, default=1)
     questions = Column(ARRAY(String(500)), default=[])
+
+    query: sql.Select
+
+
+class QuestionnaireTextAnswers(BaseModel):
+    __tablename__ = "q_text_answers"
+
+    num = Column(Integer, primary_key=True, autoincrement=True)
+    quest_id = Column(String)
+    respondent_id = Column(Integer)
+    answers_quantity = Column(Integer)
+    answers = Column(ARRAY(String(2000)), default=[])
 
     query: sql.Select

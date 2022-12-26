@@ -14,3 +14,18 @@ class CreateQE(StatesGroup):
     Q8 = State()
     Q9 = State()
     Q10 = State()
+    Approve = State()
+
+
+class FillQE(StatesGroup):
+    A1 = State()
+    A2 = State()
+    A3 = State()
+    A4 = State()
+    A5 = State()
+    A6 = State()
+    A7 = State()
+    A8 = State()
+    A9 = State()
+    A10 = State()
+    Approve = State()

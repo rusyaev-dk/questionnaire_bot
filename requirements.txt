@@ -3,7 +3,7 @@ aioredis~=2.0
 environs~=9.0
 asyncpg~=0.25.0
 gino<1.4
-sqlalchemy
+sqlalchemy<2.0
 asgiref
 Django>=3.0
 jsonfield
