@@ -201,7 +201,7 @@ async def get_10_question_text(message: types.Message, state: FSMContext):
 
 
 async def approve_questionnaire(call: types.CallbackQuery, callback_data: dict, state: FSMContext):
-    approve = callback_data.get("approve")
+    approve = callback_data.get("questions_approve")
     data = await state.get_data()
     quest_id = data.get("quest_id")
     if approve == "true":
@@ -233,5 +233,5 @@ def register_process_questionnaire(dp: Dispatcher):
     dp.register_message_handler(get_8_question_text, content_types=types.ContentType.TEXT, state=CreateQE.Q8)
     dp.register_message_handler(get_9_question_text, content_types=types.ContentType.TEXT, state=CreateQE.Q9)
     dp.register_message_handler(get_10_question_text, content_types=types.ContentType.TEXT, state=CreateQE.Q10)
-    dp.register_callback_query_handler(approve_questionnaire, q_approve_callback.filter(approve=q_approves),
+    dp.register_callback_query_handler(approve_questionnaire, q_approve_callback.filter(questions_approve=q_approves),
                                        state=CreateQE.Approve)

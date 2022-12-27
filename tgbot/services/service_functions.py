@@ -16,6 +16,13 @@ async def parse_questions_text(questionnaire):
     return text
 
 
+async def parse_answers_text(qe_text_answers):
+    answers_list = list(qe_text_answers.answers)
+    text = "Ваши ответы:\n" + "\n".join(f"Ответ {i + 1}: <b>{answers_list[i]}</b>"
+                                        for i in range(0, len(answers_list)))
+    return text
+
+
 async def get_questionnaire_info(questionnaire):
     questions_list = questionnaire.questions
     text = f"Название: <b>{questionnaire.title}</b>\n" + "\n".join(f"<b>Вопрос {i + 1}: </b>{questions_list[i]}"

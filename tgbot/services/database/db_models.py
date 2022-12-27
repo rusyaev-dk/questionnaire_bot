@@ -29,6 +29,8 @@ class QuestionnaireTextAnswers(BaseModel):
     __tablename__ = "q_text_answers"
 
     num = Column(Integer, primary_key=True, autoincrement=True)
+    title = Column(String(100))
+    is_completed = Column(String(5), default="false")
     quest_id = Column(String)
     respondent_id = Column(Integer)
     answers_quantity = Column(Integer)

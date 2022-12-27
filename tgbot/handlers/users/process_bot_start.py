@@ -18,17 +18,27 @@ async def bot_start(message: types.Message):
 
 async def deep_link_start(message: types.Message, state: FSMContext):
     args = message.get_args()
+    await db_commands.add_user(id=message.from_user.id, name=message.from_user.full_name)
     if len(args) == 10:
-        questionnaire = await db_commands.select_questionnaire(quest_id=args)
-        if questionnaire:
-            await message.answer(f"Вы начали прохождение опроса: "
-                                 f"{questionnaire.title}\n"
-                                 f"Вопрос 1: {questionnaire.questions[0]}")
-            await state.update_data(quest_id=questionnaire.quest_id)
-            await FillQE.A1.set()
+        qe_text_answers = await db_commands.select_qe_text_answers(quest_id=args, respondent_id=message.from_user.id)
+        if qe_text_answers:
+            await message.answer(f"Опрос <b>{qe_text_answers.title}</b> уже пройден Вами!", reply_markup=main_menu_kb)
         else:
-            await message.answer("Опрос не найден...",
-                                 reply_markup=main_menu_kb)
+            questionnaire = await db_commands.select_questionnaire(quest_id=args)
+            if questionnaire:
+                await message.answer(f"Вы начали прохождение опроса: "
+                                     f"{questionnaire.title}\n"
+                                     f"Вопрос 1: {questionnaire.questions[0]}")
+                await state.update_data(quest_id=questionnaire.quest_id, counter=1,
+                                        answers_quantity=questionnaire.questions_quantity)
+                await db_commands.create_qe_text_answers(quest_id=questionnaire.quest_id,
+                                                         respondent_id=message.from_user.id,
+                                                         answers_quantity=questionnaire.questions_quantity,
+                                                         title=questionnaire.title)
+                await FillQE.A1.set()
+            else:
+                await message.answer("Опрос не найден...",
+                                     reply_markup=main_menu_kb)
     else:
         await message.answer("Ссылка, по которой Вы перешли, недействительна...",
                              reply_markup=main_menu_kb)

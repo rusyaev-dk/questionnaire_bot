@@ -69,10 +69,10 @@ async def add_question(quest_id: str, question: str):
     await questionnaire.update(questions=questions_arr).apply()
 
 
-async def create_qe_text_answers(quest_id: str, respondent_id: int, answers_quantity: int):
+async def create_qe_text_answers(quest_id: str, respondent_id: int, answers_quantity: int, title: str):
     try:
         qe_text_answers = QuestionnaireTextAnswers(quest_id=quest_id, respondent_id=respondent_id,
-                                                   answers_quantity=answers_quantity)
+                                                   answers_quantity=answers_quantity, title=title)
         await qe_text_answers.create()
     except Exception as e:
         print(e)
@@ -86,6 +86,14 @@ async def select_qe_text_answers(quest_id: str, respondent_id: int):
     return qe_text_answers
 
 
+async def delete_qe_text_answers(quest_id: str, respondent_id: int):
+    qe_text_answers = await QuestionnaireTextAnswers.query.where(and_(
+        QuestionnaireTextAnswers.quest_id == quest_id,
+        QuestionnaireTextAnswers.respondent_id == respondent_id)).gino.first()
+    await qe_text_answers.delete()
+    return
+
+
 async def add_text_answer(quest_id: str, respondent_id: int, answer: str):
     qe_text_answers = await QuestionnaireTextAnswers.query.where(and_(
         QuestionnaireTextAnswers.quest_id == quest_id,
@@ -93,3 +101,11 @@ async def add_text_answer(quest_id: str, respondent_id: int, answer: str):
     answers_arr = list(qe_text_answers.answers)
     answers_arr.append(answer)
     await qe_text_answers.update(answers=answers_arr).apply()
+
+
+async def set_complete_status(quest_id: str, respondent_id: int, status: str):
+    qe_text_answers = await QuestionnaireTextAnswers.query.where(and_(
+        QuestionnaireTextAnswers.quest_id == quest_id,
+        QuestionnaireTextAnswers.respondent_id == respondent_id)).gino.first()
+    is_completed = status
+    await qe_text_answers.update(is_completed=is_completed).apply()
