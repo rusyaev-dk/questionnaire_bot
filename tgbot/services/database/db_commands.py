@@ -1,5 +1,3 @@
-from typing import List
-
 from asyncpg import UniqueViolationError
 from sqlalchemy import and_
 
@@ -31,16 +29,28 @@ async def count_users():
     return total
 
 
-async def create_questionnaire(quest_id: str, creator_id: int, title: str, questions_quantity: int):
+async def add_passed_questionnaire(id: int, quest_id: str):
+    user = await User.query.where(User.id == id).gino.first()
+    passed_questionnaires = list(user.passed_questionnaires)
+    passed_questionnaires.append(quest_id)
+    await user.update(passed_questionnaires=passed_questionnaires).apply()
+
+    questionnaire = await select_questionnaire(quest_id=quest_id)
+    passed_by = questionnaire.passed_by
+    await questionnaire.update(passed_by=passed_by+1).apply()
+
+
+async def create_questionnaire(quest_id: str, creator_id: int, title: str, q_type: str, questions_quantity: int):
     try:
         questionnaire = Questionnaire(quest_id=quest_id, creator_id=creator_id, title=title,
-                                      questions_quantity=questions_quantity)
+                                      questions_quantity=questions_quantity, q_type=q_type)
         await questionnaire.create()
 
         user = await select_user(creator_id)
-        quest_id_arr = list(user.user_questionnaires)
+        quest_id_arr = list(user.created_questionnaires)
         quest_id_arr.append(quest_id)
-        await user.update(user_questionnaires=quest_id_arr).apply()
+        await user.update(created_questionnaires=quest_id_arr).apply()
+
     except UniqueViolationError:
         print("Опрос уже существует")
         pass
@@ -51,15 +61,26 @@ async def select_questionnaire(quest_id: str):
     return questionnaire
 
 
+async def increase_started_by(quest_id: str):
+    questionnaire = await Questionnaire.query.where(Questionnaire.quest_id == quest_id).gino.first()
+    started_by = questionnaire.started_by
+    await questionnaire.update(started_by=started_by + 1).apply()
+
+
 async def delete_questionnaire(creator_id: int, quest_id: str):
     questionnaire = await Questionnaire.query.where(Questionnaire.quest_id == quest_id).gino.first()
 
     user = await select_user(creator_id)
-    quest_id_arr = list(user.user_questionnaires)
+    quest_id_arr = list(user.created_questionnaires)
     quest_id_arr.remove(f"{quest_id}")
-    await user.update(user_questionnaires=quest_id_arr).apply()
+    await user.update(created_questionnaires=quest_id_arr).apply()
     await questionnaire.delete()
     return
+
+
+async def freeze_questionnaire(quest_id: str, is_active: str):
+    questionnaire = await Questionnaire.query.where(Questionnaire.quest_id == quest_id).gino.first()
+    await questionnaire.update(is_active=f"{is_active}").apply()
 
 
 async def add_question(quest_id: str, question: str):

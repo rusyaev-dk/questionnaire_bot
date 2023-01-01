@@ -5,11 +5,11 @@ main_menu_kb = ReplyKeyboardMarkup(
     resize_keyboard=True,
     keyboard=[
         [
-            KeyboardButton(text="Создать опрос")
+            KeyboardButton(text="📝 Создать опрос")
         ],
         [
-            KeyboardButton(text="Мой профиль"),
-            KeyboardButton(text="Мои опросы")
+            KeyboardButton(text="🗂 Созданные опросы"),
+            KeyboardButton(text="📌 Пройденные опросы")
         ]
     ]
 )

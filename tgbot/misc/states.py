@@ -1,7 +1,7 @@
 from aiogram.dispatcher.filters.state import StatesGroup, State
 
 
-class CreateQE(StatesGroup):
+class CreateTextQe(StatesGroup):
     Title = State()
     Questions_qty = State()
     Q1 = State()
@@ -17,7 +17,7 @@ class CreateQE(StatesGroup):
     Approve = State()
 
 
-class FillQE(StatesGroup):
+class FillQe(StatesGroup):
     A1 = State()
     A2 = State()
     A3 = State()
@@ -29,3 +29,13 @@ class FillQE(StatesGroup):
     A9 = State()
     A10 = State()
     Approve = State()
+
+
+class CreatedQeStatistics(StatesGroup):
+    SelectQE = State()
+    SelectStatsAct = State()
+
+
+class PassedQeStatistics(StatesGroup):
+    SelectQE = State()
+    SelectStatsAct = State()
