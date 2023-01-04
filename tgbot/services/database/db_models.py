@@ -39,10 +39,10 @@ class QuestionnaireTextAnswers(TimeBaseModel):
     __tablename__ = "q_text_answers"
 
     num = Column(Integer, primary_key=True, autoincrement=True)
+    respondent_id = Column(Integer)
     quest_id = Column(String)
 
     title = Column(String(100))
-    respondent_id = Column(Integer)
     is_completed = Column(String(5), default="false")
 
     answers_quantity = Column(Integer)

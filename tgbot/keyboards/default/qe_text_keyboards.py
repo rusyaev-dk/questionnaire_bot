@@ -13,3 +13,14 @@ main_menu_kb = ReplyKeyboardMarkup(
         ]
     ]
 )
+
+
+cancel_fill_qe = ReplyKeyboardMarkup(
+    row_width=1,
+    resize_keyboard=True,
+    keyboard=[
+        [
+            KeyboardButton(text="❌ Отмена")
+        ]
+    ]
+)

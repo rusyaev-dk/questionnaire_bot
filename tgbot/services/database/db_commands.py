@@ -29,17 +29,6 @@ async def count_users():
     return total
 
 
-async def add_passed_questionnaire(id: int, quest_id: str):
-    user = await User.query.where(User.id == id).gino.first()
-    passed_questionnaires = list(user.passed_questionnaires)
-    passed_questionnaires.append(quest_id)
-    await user.update(passed_questionnaires=passed_questionnaires).apply()
-
-    questionnaire = await select_questionnaire(quest_id=quest_id)
-    passed_by = questionnaire.passed_by
-    await questionnaire.update(passed_by=passed_by+1).apply()
-
-
 async def create_questionnaire(quest_id: str, creator_id: int, title: str, q_type: str, questions_quantity: int):
     try:
         questionnaire = Questionnaire(quest_id=quest_id, creator_id=creator_id, title=title,
@@ -62,38 +51,46 @@ async def select_questionnaire(quest_id: str):
 
 
 async def increase_started_by(quest_id: str):
-    questionnaire = await Questionnaire.query.where(Questionnaire.quest_id == quest_id).gino.first()
+    questionnaire = await select_questionnaire(quest_id=quest_id)
     started_by = questionnaire.started_by
     await questionnaire.update(started_by=started_by + 1).apply()
 
 
 async def delete_questionnaire(creator_id: int, quest_id: str):
-    questionnaire = await Questionnaire.query.where(Questionnaire.quest_id == quest_id).gino.first()
-
+    questionnaire = await select_questionnaire(quest_id=quest_id)
     user = await select_user(creator_id)
-    quest_id_arr = list(user.created_questionnaires)
-    quest_id_arr.remove(f"{quest_id}")
-    await user.update(created_questionnaires=quest_id_arr).apply()
+
+    qe_text_answers = await select_all_qe_text_answers(quest_id=quest_id)
+    for field in qe_text_answers:
+        await field.delete()
+
+    created_qe = list(user.created_questionnaires)
+    created_qe.remove(f"{quest_id}")
+
+    passed_qe = list(user.passed_questionnaires)
+    passed_qe.remove(f"{quest_id}")
+
+    await user.update(created_questionnaires=created_qe).apply()
+    await user.update(passed_questionnaires=passed_qe).apply()
     await questionnaire.delete()
-    return
 
 
 async def freeze_questionnaire(quest_id: str, is_active: str):
-    questionnaire = await Questionnaire.query.where(Questionnaire.quest_id == quest_id).gino.first()
+    questionnaire = await select_questionnaire(quest_id=quest_id)
     await questionnaire.update(is_active=f"{is_active}").apply()
 
 
 async def add_question(quest_id: str, question: str):
-    questionnaire = await Questionnaire.query.where(Questionnaire.quest_id == quest_id).gino.first()
+    questionnaire = await select_questionnaire(quest_id=quest_id)
     questions_arr = list(questionnaire.questions)
     questions_arr.append(question)
     await questionnaire.update(questions=questions_arr).apply()
 
 
-async def create_qe_text_answers(quest_id: str, respondent_id: int, answers_quantity: int, title: str):
+async def create_qe_text_answers(respondent_id: int, quest_id: str, title: str, answers_quantity: int, ):
     try:
-        qe_text_answers = QuestionnaireTextAnswers(quest_id=quest_id, respondent_id=respondent_id,
-                                                   answers_quantity=answers_quantity, title=title)
+        qe_text_answers = QuestionnaireTextAnswers(respondent_id=respondent_id, quest_id=quest_id, title=title,
+                                                   answers_quantity=answers_quantity)
         await qe_text_answers.create()
     except Exception as e:
         print(e)
@@ -107,12 +104,16 @@ async def select_qe_text_answers(quest_id: str, respondent_id: int):
     return qe_text_answers
 
 
+async def select_all_qe_text_answers(quest_id: str):
+    qe_text_answers_tab = await QuestionnaireTextAnswers.query.where(QuestionnaireTextAnswers.quest_id == quest_id).gino.all()
+    return qe_text_answers_tab
+
+
 async def delete_qe_text_answers(quest_id: str, respondent_id: int):
     qe_text_answers = await QuestionnaireTextAnswers.query.where(and_(
         QuestionnaireTextAnswers.quest_id == quest_id,
         QuestionnaireTextAnswers.respondent_id == respondent_id)).gino.first()
     await qe_text_answers.delete()
-    return
 
 
 async def add_text_answer(quest_id: str, respondent_id: int, answer: str):
@@ -130,3 +131,22 @@ async def set_complete_status(quest_id: str, respondent_id: int, status: str):
         QuestionnaireTextAnswers.respondent_id == respondent_id)).gino.first()
     is_completed = status
     await qe_text_answers.update(is_completed=is_completed).apply()
+
+
+async def add_passed_qe(id: int, quest_id: str):
+    user = await select_user(id=id)
+    passed_questionnaires = list(user.passed_questionnaires)
+    passed_questionnaires.append(quest_id)
+    await user.update(passed_questionnaires=passed_questionnaires).apply()
+
+    questionnaire = await select_questionnaire(quest_id=quest_id)
+    passed_by = questionnaire.passed_by
+    await questionnaire.update(passed_by=passed_by+1).apply()
+
+
+async def remove_passed_qe(quest_id: str, respondent_id: int):
+    user = await select_user(id=respondent_id)
+    passed_qe = user.passed_questionnaires
+    passed_qe.remove(f"{quest_id}")
+
+    await user.update(passed_questionnaires=passed_qe).apply()

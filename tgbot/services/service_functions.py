@@ -20,21 +20,22 @@ async def parse_questions_text(questionnaire):
 
 async def parse_answers_text(qe_text_answers):
     answers_list = list(qe_text_answers.answers)
-    text = "Ваши ответы:\n" + "\n".join(f"Ответ {i + 1}: <b>{answers_list[i]}</b>"
+    text = "✏️ Ваши ответы:\n" + "\n".join(f"Ответ {i + 1}: <b>{answers_list[i]}</b>"
                                         for i in range(0, len(answers_list)))
     return text
 
 
 async def get_created_questionnaire_info(questionnaire):
     questions_list = list(questionnaire.questions)
-    text = f"🔹 Название: <b>{questionnaire.title}</b>\n\n" + "\n".join(f"Вопрос {i + 1}: <b>{questions_list[i]}</b>"
+    text = f"🔍 Название: <b>{questionnaire.title}</b>\n\n" + "\n".join(f"Вопрос {i + 1}: <b>{questions_list[i]}</b>"
                                                                          for i in range(0, len(questions_list)))
     try:
         pass_percent = questionnaire.started_by / questionnaire.passed_by * 100
     except ZeroDivisionError:
         pass_percent = 0
         pass
-    stat_text = (f"\n\n• Начали проходить: <b>{questionnaire.started_by}</b> чел.\n"
+    stat_text = (f"\n\n📊 Статистика:\n"
+                 f"• Начали проходить: <b>{questionnaire.started_by}</b> чел.\n"
                  f"• Прошли: <b>{questionnaire.passed_by}</b> чел.\n"
                  f"• Процент прохождения: <b>{pass_percent}%</b>\n"
                  f"• Дата создания: <b>{questionnaire.created_at}</b>")

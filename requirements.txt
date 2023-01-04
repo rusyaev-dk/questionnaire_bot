@@ -8,3 +8,5 @@ asgiref
 Django>=3.0
 jsonfield
 psycopg2-binary
+borb
+openpyxl
