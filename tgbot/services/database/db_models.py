@@ -49,3 +49,19 @@ class QuestionnaireTextAnswers(TimeBaseModel):
     answers = Column(ARRAY(String(2000)), default=[])
 
     query: sql.Select
+
+
+class QuestionnaireTestAnswers(TimeBaseModel):
+    __tablename__ = "q_text_answers"
+
+    num = Column(Integer, primary_key=True, autoincrement=True)
+    respondent_id = Column(Integer)
+    quest_id = Column(String)
+
+    title = Column(String(100))
+    is_completed = Column(String(5), default="false")
+
+    answers_quantity = Column(Integer)
+    answers = Column(ARRAY(String(2000)), default=[])
+
+    query: sql.Select

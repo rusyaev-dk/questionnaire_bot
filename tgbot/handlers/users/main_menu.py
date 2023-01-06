@@ -23,7 +23,7 @@ async def select_questionnaire_type(call: types.CallbackQuery, callback_data: di
         await call.answer("Эта опция в разработке :(", show_alert=False)
     elif q_type == "text":
         await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                         text="✏️ Отлично, укажите <b>название</b> опроса:")
+                                         text="✏️ Введите <b>название</b> опроса:")
         await CreateTextQe.Title.set()
     else:
         await state.finish()

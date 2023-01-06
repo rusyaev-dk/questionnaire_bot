@@ -10,16 +10,6 @@ class CreateTextQe(StatesGroup):
 
 class FillQe(StatesGroup):
     GetAnswer = State()
-    A1 = State()
-    A2 = State()
-    A3 = State()
-    A4 = State()
-    A5 = State()
-    A6 = State()
-    A7 = State()
-    A8 = State()
-    A9 = State()
-    A10 = State()
     Approve = State()
 
 

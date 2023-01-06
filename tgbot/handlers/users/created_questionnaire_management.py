@@ -11,6 +11,7 @@ from tgbot.misc.states import CreatedQeStatistics
 from tgbot.services.Excel.create_xlsx import create_xlsx_file
 from tgbot.services.PDF.create_pdf import create_pdf_file
 from tgbot.services.database import db_commands
+from tgbot.services.dependences import PASSED_BY_MINIMUM
 from tgbot.services.service_functions import get_created_questionnaire_info
 
 
@@ -39,15 +40,14 @@ async def created_qe_management(call: types.CallbackQuery, callback_data: dict, 
     questionnaire = await db_commands.select_questionnaire(quest_id=quest_id)
     if act == "get_file":
         passed_by = questionnaire.passed_by
-        if passed_by > 0:
+        if passed_by > PASSED_BY_MINIMUM:
             await CreatedQeStatistics.SelectFileType.set()
             await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
                                              text="📎 Выберите <b>расширение</b> файла:\n\n"
-                                                  "📍 Примечание: тут будет примечание.",
-                                             reply_markup=file_type_kb)
+                                                  "📍 Примечание: тут будет примечание.", reply_markup=file_type_kb)
         else:
-            await call.answer("👥 Чтобы получить файл с ответами, Ваш опрос должно пройти как минимум 5 человек.",
-                              show_alert=True)
+            await call.answer(f"👥 Чтобы получить файл с ответами, Ваш опрос должно пройти "
+                              f"как минимум {PASSED_BY_MINIMUM} человек.", show_alert=True)
 
     elif act == "freeze":
         await db_commands.freeze_questionnaire(quest_id=quest_id, is_active="false")
@@ -63,6 +63,8 @@ async def created_qe_management(call: types.CallbackQuery, callback_data: dict, 
 
     elif act == "delete":
         await CreatedQeStatistics.ApproveDelete.set()
+        await call.answer("⚠️ После удаления опрос восстановить уже никак не получится, а также пропадёт вся статистика"
+                          " по данному опросу", show_alert=True)
         await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
                                          text=f"Подтвердите удаление опроса: <b>{questionnaire.title}</b>",
                                          reply_markup=delete_approve_kb)
@@ -71,8 +73,7 @@ async def created_qe_management(call: types.CallbackQuery, callback_data: dict, 
         await CreatedQeStatistics.SelectQE.set()
         keyboard = data.get("keyboard")
         await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                         text="🔍 Выберите опрос для отображения статистики:",
-                                         reply_markup=keyboard)
+                                         text="🔍 Выберите опрос для отображения статистики:", reply_markup=keyboard)
 
     elif act == "main_menu":
         await state.finish()
@@ -87,13 +88,12 @@ async def choose_file_type(call: types.CallbackQuery, callback_data: dict, state
     quest_id = data.get("quest_id")
     text = data.get("text")
     questionnaire = await db_commands.select_questionnaire(quest_id=quest_id)
-    qe_text_answers_tab = await db_commands.select_all_qe_text_answers(quest_id=quest_id)
+    qe_text_answers_tab = await db_commands.select_text_answers_tab(quest_id=quest_id)
     if f_type == "pdf":
         file_path = await create_pdf_file(quest_id=quest_id, qe_text_answers_tab=qe_text_answers_tab)
         if file_path:
             await call.bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
-            await call.message.answer_document(types.InputFile(f"{file_path}"),
-                                               caption="📌 Файл по Вашему опросу")
+            await call.message.answer_document(types.InputFile(f"{file_path}"), caption="📌 Файл по Вашему опросу")
             await CreatedQeStatistics.SelectStatsAct.set()
             await call.message.answer(text=text,
                                       reply_markup=created_qe_statistics_kb(is_active=questionnaire.is_active))
@@ -105,14 +105,13 @@ async def choose_file_type(call: types.CallbackQuery, callback_data: dict, state
         file_path = await create_xlsx_file(quest_id=quest_id, qe_text_answers_tab=qe_text_answers_tab)
         if file_path:
             await call.bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
-            await call.message.answer_document(types.InputFile(f"{file_path}"),
-                                               caption="📌 Файл по Вашему опросу")
+            await call.message.answer_document(types.InputFile(f"{file_path}"), caption="📌 Файл по Вашему опросу")
             await CreatedQeStatistics.SelectStatsAct.set()
             await call.message.answer(text=text,
                                       reply_markup=created_qe_statistics_kb(is_active=questionnaire.is_active))
             os.remove(file_path)
         else:
-            await call.answer("Что-то пошло не так...", show_alert=False)
+            await call.answer("Что-то пошло не так. Сообщите об ошибке разработчику!", show_alert=True)
 
     elif f_type == "step_back":
         await CreatedQeStatistics.SelectStatsAct.set()
@@ -132,7 +131,8 @@ async def delete_qe_approve(call: types.CallbackQuery, callback_data: dict, stat
 
     questionnaire = await db_commands.select_questionnaire(quest_id=quest_id)
     if approve == "delete":
-        await db_commands.delete_questionnaire(creator_id=call.from_user.id, quest_id=quest_id)
+        await db_commands.delete_questionnaire(quest_id=quest_id)
+        await db_commands.remove_user_created_qe(creator_id=call.from_user.id, quest_id=quest_id)
         await call.answer("Опрос удалён", show_alert=True)
 
         user = await db_commands.select_user(id=call.from_user.id)

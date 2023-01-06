@@ -19,8 +19,7 @@ async def get_answer_text(message: types.Message, state: FSMContext):
         if message.text == "❌ Отмена":
             await db_commands.delete_qe_text_answers(quest_id=quest_id, respondent_id=message.from_user.id)
             await state.finish()
-            await message.answer("❌ Прохождение опроса отменено.\n"
-                                 "Главное меню:", reply_markup=main_menu_kb)
+            await message.answer("❌ Прохождение опроса отменено.\nГлавное меню:", reply_markup=main_menu_kb)
             break
 
         await db_commands.add_text_answer(quest_id=quest_id, respondent_id=message.from_user.id, answer=message.text)
@@ -47,8 +46,8 @@ async def approve_text_answers(call: types.CallbackQuery, callback_data: dict, s
     quest_id = data.get("quest_id")
     if approve == "true":
         await state.finish()
-        await db_commands.add_passed_qe(id=call.from_user.id, quest_id=quest_id)
-        await db_commands.set_complete_status(quest_id=quest_id, respondent_id=call.from_user.id, status="true")
+        await db_commands.add_user_passed_qe(id=call.from_user.id, quest_id=quest_id)
+        await db_commands.update_complete_status(quest_id=quest_id, respondent_id=call.from_user.id, status="true")
         await call.bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
         await call.message.answer("📮 Ваши ответы отправлены создателю опроса.",
                                   reply_markup=main_menu_kb)

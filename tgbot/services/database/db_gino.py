@@ -38,5 +38,4 @@ class TimeBaseModel(BaseModel):
 
 
 async def on_startup(dp: Dispatcher):
-    print("Устанавливаем связи с PostgreSQL")
     await db.set_bind(POSTGRES_URI)

@@ -9,12 +9,12 @@ from tgbot.keyboards.inline.qe_inline_keyboards import replay_qe_approve_kb, rep
 from tgbot.misc.states import FillQe
 from tgbot.misc.throttling_function import rate_limit
 from tgbot.services.database import db_commands
-from tgbot.services.database.db_commands import increase_started_by
+from tgbot.services.database.db_commands import increase_qe_started_by
 
 
 @rate_limit(3)
 async def bot_start(message: types.Message):
-    await message.answer("Привет! Это <b>тестовый</b> бот для создания опросов и прохождения их другими людьми. "
+    await message.answer("🤖 Привет! Это <b>тестовый</b> бот для создания опросов и прохождения их другими людьми. "
                          "Пока что бот находится на ранней стадии своего развития, так что могут возникать ошибки!",
                          reply_markup=main_menu_kb)
     await db_commands.add_user(id=message.from_user.id, name=message.from_user.full_name)
@@ -37,7 +37,7 @@ async def deep_link_start(message: types.Message, state: FSMContext):
                 await state.update_data(quest_id=args)
             else:
                 if questionnaire.is_active == "true":
-                    await increase_started_by(quest_id=questionnaire.quest_id)
+                    await increase_qe_started_by(quest_id=questionnaire.quest_id)
                     await message.answer(f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n"
                                          f"Вопрос 1: {questionnaire.questions[0]}",
                                          reply_markup=cancel_fill_qe)
@@ -69,8 +69,8 @@ async def replay_qe_approve(call: types.CallbackQuery, callback_data: dict, stat
         if questionnaire:
             if questionnaire.is_active == "true":
                 await db_commands.delete_qe_text_answers(quest_id=quest_id, respondent_id=call.from_user.id)
-                await db_commands.remove_passed_qe(quest_id=quest_id, respondent_id=call.from_user.id)
-                await increase_started_by(quest_id=questionnaire.quest_id)
+                await db_commands.remove_user_passed_qe(quest_id=quest_id, respondent_id=call.from_user.id)
+                await increase_qe_started_by(quest_id=questionnaire.quest_id)
                 await call.bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
                 await call.message.answer(f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n"
                                           f"Вопрос 1: {questionnaire.questions[0]}", reply_markup=cancel_fill_qe)
