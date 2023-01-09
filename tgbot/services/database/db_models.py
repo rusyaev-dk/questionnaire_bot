@@ -21,7 +21,6 @@ class Questionnaire(TimeBaseModel):
     quest_id = Column(String, primary_key=True)
     creator_id = Column(Integer)
 
-    q_type = Column(String(10))
     title = Column(String(100))
 
     is_active = Column(String(10), default="true")
@@ -32,27 +31,13 @@ class Questionnaire(TimeBaseModel):
     questions_quantity = Column(Integer, default=1)
     questions = Column(ARRAY(String(500)), default=[])
 
-    query: sql.Select
-
-
-class QuestionnaireTextAnswers(TimeBaseModel):
-    __tablename__ = "q_text_answers"
-
-    num = Column(Integer, primary_key=True, autoincrement=True)
-    respondent_id = Column(Integer)
-    quest_id = Column(String)
-
-    title = Column(String(100))
-    is_completed = Column(String(5), default="false")
-
-    answers_quantity = Column(Integer)
-    answers = Column(ARRAY(String(2000)), default=[])
+    answer_options = Column(ARRAY(String(2000)), default=[])
 
     query: sql.Select
 
 
-class QuestionnaireTestAnswers(TimeBaseModel):
-    __tablename__ = "q_text_answers"
+class QuestionnaireAnswers(TimeBaseModel):
+    __tablename__ = "qe_answers"
 
     num = Column(Integer, primary_key=True, autoincrement=True)
     respondent_id = Column(Integer)

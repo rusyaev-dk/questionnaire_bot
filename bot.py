@@ -8,12 +8,12 @@ from aiogram.contrib.fsm_storage.redis import RedisStorage2
 from tgbot.config import load_config
 from tgbot.filters.admin import AdminFilter
 from tgbot.handlers.echo import register_echo
-from tgbot.handlers.users.created_questionnaire_management import register_created_qe_management
-from tgbot.handlers.users.passed_questionnaire_management import register_passed_qe_management
+from tgbot.handlers.users.create_questionnaire import register_create_questionnaire
+from tgbot.handlers.users.created_qe_management import register_created_qe_management
+from tgbot.handlers.users.pass_questionnaire import register_pass_questionnaire
+from tgbot.handlers.users.passed_qe_management import register_passed_qe_management
 from tgbot.handlers.users.bot_start import register_bot_start
-from tgbot.handlers.users.fill_text_questionnaire import register_fill_text_qe
 from tgbot.handlers.users.main_menu import register_main_menu
-from tgbot.handlers.users.create_text_questionnaire import register_create_text_qe
 from tgbot.middlewares.db import DbMiddleware
 from tgbot.middlewares.throttling import ThrottlingMiddleware
 from tgbot.services import set_bot_commands
@@ -37,9 +37,9 @@ def register_all_handlers(dp):
 
     register_bot_start(dp)
     register_main_menu(dp)
-    register_create_text_qe(dp)
 
-    register_fill_text_qe(dp)
+    register_create_questionnaire(dp)
+    register_pass_questionnaire(dp)
 
     register_created_qe_management(dp)
     register_passed_qe_management(dp)
@@ -60,7 +60,7 @@ async def main():
     dp = Dispatcher(bot, storage=storage)
 
     await db_gino.on_startup(dp)
-    await db.gino.drop_all()
+    #await db.gino.drop_all()
     await db.gino.create_all()
 
     bot['config'] = config

@@ -3,7 +3,7 @@ from typing import List
 from aiogram import Dispatcher
 from gino import Gino
 import sqlalchemy as sa
-from sqlalchemy import Integer, Column, String, DateTime
+from sqlalchemy import Column, DateTime
 
 import tgbot.config
 

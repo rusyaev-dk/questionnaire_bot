@@ -24,3 +24,15 @@ cancel_fill_qe = ReplyKeyboardMarkup(
         ]
     ]
 )
+
+
+# question_type_kb = ReplyKeyboardMarkup(
+#     row_width=2,
+#     resize_keyboard=True,
+#     keyboard=[
+#         [
+#             KeyboardButton(text="Открытый"),
+#             KeyboardButton(text="")
+#         ]
+#     ]
+# )

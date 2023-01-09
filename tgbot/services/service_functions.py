@@ -1,39 +1,72 @@
 import random, string
 
 from tgbot.services.database import db_commands
+from tgbot.services.database.db_models import Questionnaire
+from tgbot.services.dependences import ANSWER_LETTERS
 
 
-def get_rand_id(length):
-    letters = string.ascii_lowercase + string.ascii_uppercase
-    digits = string.digits
-    symbols = letters + digits
+def get_rand_id(length: int):
+    """
+    Generates random combination of symbols for questionnaire_id in database
+    """
+
+    symbols = string.ascii_lowercase + string.ascii_uppercase + string.digits
     return ''.join(random.choice(symbols) for i in range(length))
 
 
-async def parse_questions_text(questionnaire):
+async def parse_questions_text(questionnaire: Questionnaire):
+    """
+    Parsing questions entered by user
+    """
+
     questions_list = questionnaire.questions
-    text = "🔍 Ваш опрос:\n\n" + f"🔹 Название: <b>{questionnaire.title}</b>\n\n" + "\n".join(
-        f"Вопрос {i + 1}: <b>{questions_list[i]}</b>" for i in range(0, len(questions_list))
-    ) + "\n\nСоздать опрос?"
+    text = (f"🔍 Ваш опрос:\n\n "
+            f"🔹 Название: <b>{questionnaire.title}</b>\n\n")
+    for i in range(len(questions_list)):
+        text += f"{i + 1}-й вопрос : <b>{questions_list[i][1]}</b>\n"
+    text += "\n\nСоздать опрос?"
     return text
 
 
-async def parse_answers_text(qe_text_answers):
-    answers_list = list(qe_text_answers.answers)
-    text = "✏️ Ваши ответы:\n" + "\n".join(f"Ответ {i + 1}: <b>{answers_list[i]}</b>"
-                                        for i in range(0, len(answers_list)))
+async def parse_answers_text(answers: list):
+    """
+    Parsing answers entered by user
+    """
+
+    text = "📄 Ваши ответы:\n\n"
+    for i in range(len(answers)):
+        text += f"{i + 1}-й ответ: <b>{answers[i]}</b>\n"
+    text += "\n\nОтправить ответы?"
     return text
 
 
-async def get_created_questionnaire_info(questionnaire):
-    questions_list = list(questionnaire.questions)
-    text = f"🔍 Название: <b>{questionnaire.title}</b>\n\n" + "\n".join(f"Вопрос {i + 1}: <b>{questions_list[i]}</b>"
-                                                                         for i in range(0, len(questions_list)))
-    try:
-        pass_percent = questionnaire.started_by / questionnaire.passed_by * 100
-    except ZeroDivisionError:
+async def parse_answer_options(answer_options: list):
+    """
+    Parsing answer options for a given test
+    """
+
+    text = "📄 Варианты ответов:\n"
+    for i in range(len(answer_options)):
+        text += f"<b>{ANSWER_LETTERS[i]}:</b> {answer_options[i]}\n"
+    text += "\n✏️ Укажите вариант ответа ниже:"
+    return text
+
+
+async def created_qe_info(questionnaire: Questionnaire):
+    """
+    Parsing created by user questionnaire info with statistics etc.
+    """
+
+    questions_list = questionnaire.questions
+    text = f"🔍 Название: <b>{questionnaire.title}</b>\n\n"
+    for i in range(len(questions_list)):
+        text += f"{i + 1}-й вопрос: <b>{questions_list[i][1]}</b>\n"
+
+    if questionnaire.passed_by == 0:
         pass_percent = 0
-        pass
+    else:
+        pass_percent = questionnaire.started_by / questionnaire.passed_by * 100
+
     stat_text = (f"\n\n📊 Статистика:\n"
                  f"• Начали проходить: <b>{questionnaire.started_by}</b> чел.\n"
                  f"• Прошли: <b>{questionnaire.passed_by}</b> чел.\n"
@@ -43,21 +76,27 @@ async def get_created_questionnaire_info(questionnaire):
     return text
 
 
-async def get_passed_questionnaire_info(respondent_id: int, quest_id: str, markdown: bool):
+async def passed_qe_info(respondent_id: int, quest_id: str, markdown: bool):
+    """
+    Parsing passed by user questionnaire info with statistics etc.
+    """
+
     questionnaire = await db_commands.select_questionnaire(quest_id=quest_id)
-    questions_list = list(questionnaire.questions)
-    qe_text_answers = await db_commands.select_qe_text_answers(respondent_id=respondent_id, quest_id=quest_id)
-    answers_list = list(qe_text_answers.answers)
+    questions_list = questionnaire.questions
+    qe_answers = await db_commands.select_qe_answers(respondent_id=respondent_id, quest_id=quest_id)
+    answers_list = qe_answers.answers
 
     if markdown:
-        text = f"🔹 Название: **{qe_text_answers.title}**\n\n" + "\n".join(
-            f"Вопрос {i + 1}: **{questions_list[i]}**\n"
-            f"Ответ: **{answers_list[i]}**\n"
-            for i in range(0, len(questions_list)))
-        text += f"\nДата прохождения: **{qe_text_answers.created_at}**"
+        text = f"🔹 Название: **{qe_answers.title}**\n\n"
+        for i in range(len(questions_list)):
+            text += (f"{i + 1}-й вопрос: **{questions_list[i][1]}**\n"
+                     f"Ответ: **{answers_list[i]}**")
+        text += f"\nДата прохождения: **{qe_answers.created_at}**"
     else:
-        text = f"🔹 Название: <b>{qe_text_answers.title}</b>\n\n" + "\n".join(f"Вопрос {i + 1}: <b>{questions_list[i]}</b>\n"
-                                                                             f"Ответ: <b>{answers_list[i]}</b>\n"
-                                                                             for i in range(0, len(questions_list)))
-        text += f"\nДата прохождения: <b>{qe_text_answers.created_at}</b>"
+        text = f"🔹 Название: <b>{qe_answers.title}</b>\n\n"
+        for i in range(len(questions_list)):
+            text += (f"{i + 1}-й вопрос: <b>{questions_list[i][1]}</b>\n"
+                     f"Ответ: <b>{answers_list[i]}</b>")
+        text += f"\nДата прохождения: <b>{qe_answers.created_at}</b>"
+        text += f"\nДата прохождения: <b>{qe_answers.created_at}</b>"
     return text

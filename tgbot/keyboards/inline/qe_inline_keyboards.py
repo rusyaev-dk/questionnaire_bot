@@ -2,37 +2,54 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.callback_data import CallbackData
 
 from tgbot.services.database import db_commands
+from tgbot.services.dependences import ANSWER_LETTERS
 
-q_type_callback = CallbackData("action", "q_type")
-q_approve_callback = CallbackData("action", "questions_approve")
+qe_type_callback = CallbackData("action", "qe_type")
+question_type_callback = CallbackData("action", "question_type")
+qe_approve_callback = CallbackData("action", "questions_approve")
 text_answers_approve_callback = CallbackData("action", "answers_approve")
 qe_list_callback = CallbackData("action", "quest_id")
 statistics_kb_callback = CallbackData("action", "act")
 file_type_callback = CallbackData("action", "f_type")
-delete_approve_callback = CallbackData("action", "approve")
+qe_answers_approve_callback = CallbackData("action", "approve")
 replay_qe_approve_callback = CallbackData("action", "approve")
+answer_options_callback = CallbackData("action", "answer")
 
-q_types = ["test", "text", "main_menu"]
+qe_types = ["test", "text", "main_menu"]
 questionnaire_type_kb = InlineKeyboardMarkup(
     row_width=2,
     inline_keyboard=[
         [
-            InlineKeyboardButton(text="Текстовый опрос", callback_data=q_type_callback.new(q_type="text")),
-            InlineKeyboardButton(text="Тесты", callback_data=q_type_callback.new(q_type="test"))
+            InlineKeyboardButton(text="Текстовый опрос", callback_data=qe_type_callback.new(qe_type="text")),
+            InlineKeyboardButton(text="Тесты", callback_data=qe_type_callback.new(qe_type="test"))
         ],
         [
-            InlineKeyboardButton(text="◀️ Главное меню", callback_data=q_type_callback.new(q_type="main_menu"))
+            InlineKeyboardButton(text="◀️ Главное меню", callback_data=qe_type_callback.new(qe_type="main_menu"))
         ]
     ]
 )
 
-q_approves = ["true", "false"]
+question_types = ["text", "test", "cancel"]
+question_type_kb = InlineKeyboardMarkup(
+    row_width=2,
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(text="Открытый", callback_data=question_type_callback.new(question_type="text")),
+            InlineKeyboardButton(text="Закрытый", callback_data=question_type_callback.new(question_type="test"))
+        ],
+        [
+            InlineKeyboardButton(text="Отменить опрос", callback_data=question_type_callback.new(question_type="cancel"))
+        ]
+    ]
+)
+
+qe_approves = ["true", "false"]
 questionnaire_approve_kb = InlineKeyboardMarkup(
     row_width=2,
     inline_keyboard=[
         [
-            InlineKeyboardButton(text="✅ Создать", callback_data=q_approve_callback.new(questions_approve="true")),
-            InlineKeyboardButton(text="❌ Отмена", callback_data=q_approve_callback.new(questions_approve="false"))
+            InlineKeyboardButton(text="✅ Создать", callback_data=qe_approve_callback.new(questions_approve="true")),
+            InlineKeyboardButton(text="❌ Отмена", callback_data=qe_approve_callback.new(questions_approve="false"))
         ]
     ]
 )
@@ -111,13 +128,13 @@ file_type_kb = InlineKeyboardMarkup(
 )
 
 
-delete_approves = ["delete", "cancel"]
-delete_approve_kb = InlineKeyboardMarkup(
+qe_answers_approves = ["delete", "cancel"]
+qe_answers_approve_kb = InlineKeyboardMarkup(
     row_width=2,
     inline_keyboard=[
         [
-            InlineKeyboardButton(text="✅ Удалить", callback_data=delete_approve_callback.new(approve="delete")),
-            InlineKeyboardButton(text="❌ Отмена", callback_data=delete_approve_callback.new(approve="cancel"))
+            InlineKeyboardButton(text="✅ Удалить", callback_data=qe_answers_approve_callback.new(approve="delete")),
+            InlineKeyboardButton(text="❌ Отмена", callback_data=qe_answers_approve_callback.new(approve="cancel"))
         ]
     ]
 )
@@ -156,3 +173,19 @@ replay_qe_approve_kb = InlineKeyboardMarkup(
         ]
     ]
 )
+
+
+def generate_answer_options(answers_quantity: int):
+    buttons = []
+    for i in range(answers_quantity):
+        buttons.append(InlineKeyboardButton(text=f"{ANSWER_LETTERS[i]}",
+                                            callback_data=answer_options_callback.new(answer=f"{ANSWER_LETTERS[i]}")))
+    buttons.append(InlineKeyboardButton(text="Отмена", callback_data=answer_options_callback.new(answer="cancel")))
+
+    keyboard = InlineKeyboardMarkup(row_width=answers_quantity)
+
+    for i in range(answers_quantity):
+        keyboard.insert(buttons[i])
+
+    keyboard.row(buttons[-1])
+    return keyboard

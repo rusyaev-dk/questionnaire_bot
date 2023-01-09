@@ -5,7 +5,7 @@ from tgbot.keyboards.default.qe_text_keyboards import main_menu_kb
 from tgbot.keyboards.inline.qe_inline_keyboards import passed_qe_statistics_kb, qe_list_callback, \
     statistics_kb_callback, statistics_acts
 from tgbot.misc.states import PassedQeStatistics
-from tgbot.services.service_functions import get_passed_questionnaire_info
+from tgbot.services.service_functions import passed_qe_info
 
 
 async def get_passed_qe_statistics(call: types.CallbackQuery, callback_data: dict, state: FSMContext):
@@ -16,10 +16,10 @@ async def get_passed_qe_statistics(call: types.CallbackQuery, callback_data: dic
         await call.message.answer("Главное меню:", reply_markup=main_menu_kb)
     else:
         await PassedQeStatistics.SelectStatsAct.set()
-        message_text = await get_passed_questionnaire_info(respondent_id=call.from_user.id,
-                                                           quest_id=quest_id, markdown=False)
-        share_text = await get_passed_questionnaire_info(respondent_id=call.from_user.id,
-                                                         quest_id=quest_id, markdown=True)
+        message_text = await passed_qe_info(respondent_id=call.from_user.id,
+                                            quest_id=quest_id, markdown=False)
+        share_text = await passed_qe_info(respondent_id=call.from_user.id,
+                                          quest_id=quest_id, markdown=True)
         await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
                                          text=message_text, reply_markup=passed_qe_statistics_kb(share_text=share_text))
 

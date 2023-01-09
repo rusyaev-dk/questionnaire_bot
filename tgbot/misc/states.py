@@ -1,15 +1,31 @@
 from aiogram.dispatcher.filters.state import StatesGroup, State
 
 
-class CreateTextQe(StatesGroup):
+# class CreateTextQe(StatesGroup):
+#     Title = State()
+#     Questions_qty = State()
+#     GetQuestion = State()
+#     Approve = State()
+
+
+class CreateQe(StatesGroup):
     Title = State()
     Questions_qty = State()
-    GetQuestion = State()
+    QuestionType = State()
+
+    OpenQuestionText = State()
+
+    ClosedQuestionText = State()
+    ClosedAnswersQuantity = State()
+    ClosedAnswerText = State()
+
     Approve = State()
 
 
 class FillQe(StatesGroup):
-    GetAnswer = State()
+    QuestionType = State()
+    OpenAnswer = State()
+    ClosedAnswer = State()
     Approve = State()
 
 

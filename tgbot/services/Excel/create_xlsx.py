@@ -18,7 +18,7 @@ async def create_xlsx_file(qe_text_answers_tab: list, quest_id: str):
 
     counter = 1
     for field in qe_text_answers_tab:
-        qe_text_answers = await db_commands.select_qe_text_answers(quest_id=quest_id, respondent_id=field.respondent_id)
+        qe_text_answers = await db_commands.select_qe_answers(quest_id=quest_id, respondent_id=field.respondent_id)
         answers = qe_text_answers.answers
         answers.insert(0, counter)
         table_list.append(answers)
