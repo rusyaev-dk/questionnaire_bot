@@ -60,7 +60,7 @@ async def main():
     dp = Dispatcher(bot, storage=storage)
 
     await db_gino.on_startup(dp)
-    #await db.gino.drop_all()
+    await db.gino.drop_all()
     await db.gino.create_all()
 
     bot['config'] = config

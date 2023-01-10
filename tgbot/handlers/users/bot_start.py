@@ -89,7 +89,8 @@ async def replay_qe_approve(call: types.CallbackQuery, callback_data: dict, stat
                     answers_list = questionnaire.answer_options  # two-dimensional list
                     answer_options = answers_list[0]
                     text = await parse_answer_options(answer_options=answer_options)
-                    await call.message.answer(f"❓ 1-й вопрос: {questionnaire.questions[0][1]}\n\n{text}",
+                    await call.message.answer(f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n"
+                                              f"❓ 1-й вопрос: {questionnaire.questions[0][1]}\n\n{text}",
                                               reply_markup=generate_answer_options(answers_quantity=len(answer_options)))
                     await state.update_data(closed_counter=1)
                     await FillQe.ClosedAnswer.set()

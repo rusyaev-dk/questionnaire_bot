@@ -2,8 +2,8 @@ from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 
 from tgbot.keyboards.default.qe_text_keyboards import main_menu_kb
-from tgbot.keyboards.inline.qe_inline_keyboards import generate_answer_options, text_answers_approve_kb, \
-    qe_answers_approve_callback, qe_answers_approves, answer_options_callback
+from tgbot.keyboards.inline.qe_inline_keyboards import generate_answer_options, answers_approve_kb, \
+    answer_options_callback, answers_approve_callback, answers_approves
 from tgbot.misc.states import FillQe
 from tgbot.services.database import db_commands
 from tgbot.services.service_functions import parse_answers_text, parse_answer_options
@@ -36,9 +36,9 @@ async def get_open_answer(message: types.Message, state: FSMContext):
             await FillQe.ClosedAnswer.set()
     else:
         respondent_answers = await db_commands.select_qe_answers(quest_id=quest_id, respondent_id=message.from_user.id)
-        text = "📑 Опрос пройден.\n\n"
+        text = "❇️ Опрос пройден.\n\n"
         text += await parse_answers_text(answers=respondent_answers.answers)
-        await message.answer(text, reply_markup=text_answers_approve_kb)
+        await message.answer(text, reply_markup=answers_approve_kb)
         await FillQe.Approve.set()
 
 
@@ -75,24 +75,24 @@ async def get_closed_answer(call: types.CallbackQuery, callback_data: dict, stat
                 await FillQe.ClosedAnswer.set()
         else:
             respondent_answers = await db_commands.select_qe_answers(quest_id=quest_id, respondent_id=call.from_user.id)
-            text = "📑 Опрос пройден.\n\n"
-            text += await parse_answers_text(answers=respondent_answers)
-            await call.message.answer(text, reply_markup=text_answers_approve_kb)
+            text = "❇️ Опрос пройден.\n\n"
+            text += await parse_answers_text(answers=respondent_answers.answers)
+            await call.message.answer(text, reply_markup=answers_approve_kb)
             await FillQe.Approve.set()
 
 
 async def approve_answers(call: types.CallbackQuery, callback_data: dict, state: FSMContext):
-    approve = callback_data.get("answers_approve")
+    approve = callback_data.get("approve")
     data = await state.get_data()
     quest_id = data.get("quest_id")
-    if approve == "delete":
+    if approve == "send":
         await db_commands.add_user_passed_qe(quest_id=quest_id, respondent_id=call.from_user.id)
         await db_commands.update_complete_status(quest_id=quest_id, respondent_id=call.from_user.id, status="true")
         await call.bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
         await call.message.answer("📮 Ваши ответы отправлены создателю опроса.",
                                   reply_markup=main_menu_kb)
         await state.finish()
-    elif approve == "cancel":
+    elif approve == "delete":
         await db_commands.delete_qe_answers_field(quest_id=quest_id, respondent_id=call.from_user.id)
         await call.message.answer("❌ Ваши ответы удалены",
                                   reply_markup=main_menu_kb)
@@ -103,5 +103,5 @@ def register_pass_questionnaire(dp: Dispatcher):
     text = types.ContentType.TEXT
     dp.register_message_handler(get_open_answer, content_types=text, state=FillQe.OpenAnswer)
     dp.register_callback_query_handler(get_closed_answer, answer_options_callback.filter(), state=FillQe.ClosedAnswer)
-    dp.register_callback_query_handler(approve_answers, qe_answers_approve_callback.filter(approve=qe_answers_approves),
+    dp.register_callback_query_handler(approve_answers, answers_approve_callback.filter(approve=answers_approves),
                                        state=FillQe.Approve)

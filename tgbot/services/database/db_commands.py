@@ -1,3 +1,4 @@
+import asyncpg.exceptions
 from asyncpg import UniqueViolationError
 from sqlalchemy import and_
 
@@ -154,7 +155,7 @@ async def remove_user_passed_qe(respondent_id: int, quest_id: str):
 
 async def add_question(quest_id: str, question: list):
     questionnaire = await select_questionnaire(quest_id=quest_id)
-    questions_arr = list(questionnaire.questions)
+    questions_arr = questionnaire.questions
     questions_arr.append(question)
     await questionnaire.update(questions=questions_arr).apply()
 
@@ -163,7 +164,7 @@ async def add_qe_answer(respondent_id: int, quest_id: str, answer: str):
     qe_text_answers = await QuestionnaireAnswers.query.where(and_(
         QuestionnaireAnswers.quest_id == quest_id,
         QuestionnaireAnswers.respondent_id == respondent_id)).gino.first()
-    answers_arr = list(qe_text_answers.answers)
+    answers_arr = qe_text_answers.answers
     answers_arr.append(answer)
     await qe_text_answers.update(answers=answers_arr).apply()
 

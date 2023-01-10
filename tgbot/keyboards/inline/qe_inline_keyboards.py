@@ -6,12 +6,12 @@ from tgbot.services.dependences import ANSWER_LETTERS
 
 qe_type_callback = CallbackData("action", "qe_type")
 question_type_callback = CallbackData("action", "question_type")
-qe_approve_callback = CallbackData("action", "questions_approve")
-text_answers_approve_callback = CallbackData("action", "answers_approve")
+qe_approve_callback = CallbackData("action", "approve")
+answers_approve_callback = CallbackData("action", "approve")
 qe_list_callback = CallbackData("action", "quest_id")
 statistics_kb_callback = CallbackData("action", "act")
 file_type_callback = CallbackData("action", "f_type")
-qe_answers_approve_callback = CallbackData("action", "approve")
+delete_qe_approve_callback = CallbackData("action", "approve")
 replay_qe_approve_callback = CallbackData("action", "approve")
 answer_options_callback = CallbackData("action", "answer")
 
@@ -43,26 +43,26 @@ question_type_kb = InlineKeyboardMarkup(
     ]
 )
 
-qe_approves = ["true", "false"]
+qe_approves = ["create", "delete"]
 questionnaire_approve_kb = InlineKeyboardMarkup(
     row_width=2,
     inline_keyboard=[
         [
-            InlineKeyboardButton(text="✅ Создать", callback_data=qe_approve_callback.new(questions_approve="true")),
-            InlineKeyboardButton(text="❌ Отмена", callback_data=qe_approve_callback.new(questions_approve="false"))
+            InlineKeyboardButton(text="✅ Создать", callback_data=qe_approve_callback.new(approve="create")),
+            InlineKeyboardButton(text="❌ Отмена", callback_data=qe_approve_callback.new(approve="delete"))
         ]
     ]
 )
 
-text_a_approves = ["true", "false"]
-text_answers_approve_kb = InlineKeyboardMarkup(
+answers_approves = ["send", "delete"]
+answers_approve_kb = InlineKeyboardMarkup(
     row_width=2,
     inline_keyboard=[
         [
-            InlineKeyboardButton(text="✅ Отправить", callback_data=text_answers_approve_callback.new(
-                answers_approve="true")),
-            InlineKeyboardButton(text="❌ Отменить", callback_data=text_answers_approve_callback.new(
-                answers_approve="false"))
+            InlineKeyboardButton(text="✅ Отправить", callback_data=answers_approve_callback.new(
+                approve="send")),
+            InlineKeyboardButton(text="❌ Отменить", callback_data=answers_approve_callback.new(
+                approve="delete"))
         ]
     ]
 )
@@ -128,13 +128,13 @@ file_type_kb = InlineKeyboardMarkup(
 )
 
 
-qe_answers_approves = ["delete", "cancel"]
-qe_answers_approve_kb = InlineKeyboardMarkup(
+delete_qe_approves = ["delete", "cancel"]
+delete_qe_approve_kb = InlineKeyboardMarkup(
     row_width=2,
     inline_keyboard=[
         [
-            InlineKeyboardButton(text="✅ Удалить", callback_data=qe_answers_approve_callback.new(approve="delete")),
-            InlineKeyboardButton(text="❌ Отмена", callback_data=qe_answers_approve_callback.new(approve="cancel"))
+            InlineKeyboardButton(text="✅ Удалить", callback_data=delete_qe_approve_callback.new(approve="delete")),
+            InlineKeyboardButton(text="❌ Отмена", callback_data=delete_qe_approve_callback.new(approve="cancel"))
         ]
     ]
 )

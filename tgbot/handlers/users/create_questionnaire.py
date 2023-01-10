@@ -164,10 +164,10 @@ async def get_closed_answer_text(message: types.Message, state: FSMContext):
 
 
 async def approve_questionnaire(call: types.CallbackQuery, callback_data: dict, state: FSMContext):
-    approve = callback_data.get("questions_approve")
+    approve = callback_data.get("approve")
     data = await state.get_data()
     quest_id = data.get("quest_id")
-    if approve == "true":
+    if approve == "create":
         await db_commands.add_user_created_qe(creator_id=call.from_user.id, quest_id=quest_id)
         await state.finish()
         link = f"https://t.me/{BOT_USERNAME}/?start={quest_id}"
@@ -177,7 +177,7 @@ async def approve_questionnaire(call: types.CallbackQuery, callback_data: dict, 
                                          f"📎 Ссылка для прохождения: <b>{link}</b>",
                                          reply_markup=share_link_kb(link))
         await call.message.answer("Главное меню:", reply_markup=main_menu_kb)
-    elif approve == "false":
+    elif approve == "delete":
         await db_commands.delete_questionnaire(quest_id=quest_id)
         await state.finish()
         await call.message.answer("❌ Создание опроса отменено. Главное меню:",
@@ -196,5 +196,5 @@ def register_create_questionnaire(dp: Dispatcher):
     dp.register_message_handler(get_closed_answers_quantity, content_types=text, state=CreateQe.ClosedAnswersQuantity)
     dp.register_message_handler(get_closed_answer_text, content_types=text, state=CreateQe.ClosedAnswerText)
 
-    dp.register_callback_query_handler(approve_questionnaire, qe_approve_callback.filter(questions_approve=qe_approves),
+    dp.register_callback_query_handler(approve_questionnaire, qe_approve_callback.filter(approve=qe_approves),
                                        state=CreateQe.Approve)

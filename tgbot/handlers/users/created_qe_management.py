@@ -5,8 +5,8 @@ from aiogram.dispatcher import FSMContext
 
 from tgbot.keyboards.default.qe_text_keyboards import main_menu_kb
 from tgbot.keyboards.inline.qe_inline_keyboards import created_qe_statistics_kb, qe_list_callback, \
-    statistics_kb_callback, statistics_acts, file_type_kb, file_type_callback, f_types, qe_answers_approve_kb, \
-    qe_answers_approve_callback, qe_answers_approves, qe_list_kb
+    statistics_kb_callback, statistics_acts, file_type_kb, file_type_callback, f_types, delete_qe_approve_kb, \
+    delete_qe_approve_callback, delete_qe_approves, qe_list_kb
 from tgbot.misc.states import CreatedQeStatistics
 from tgbot.services.Excel.create_xlsx import create_xlsx_file
 from tgbot.services.PDF.create_pdf import create_pdf_file
@@ -25,10 +25,12 @@ async def get_created_qe_statistics(call: types.CallbackQuery, callback_data: di
         await CreatedQeStatistics.SelectStatsAct.set()
         await state.update_data(quest_id=quest_id)
         questionnaire = await db_commands.select_questionnaire(quest_id=quest_id)
-        text = await created_qe_info(questionnaire)
-        await state.update_data(text=text)
-        await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id, text=text,
-                                         reply_markup=created_qe_statistics_kb(is_active=questionnaire.is_active))
+        text = await created_qe_info(questionnaire=questionnaire)
+        await state.update_data(text=text[1])
+        await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
+                                         text=text[0])
+        await call.message.answer(text=text[1],
+                                  reply_markup=created_qe_statistics_kb(is_active=questionnaire.is_active))
 
 
 async def created_qe_management(call: types.CallbackQuery, callback_data: dict, state: FSMContext):
@@ -40,7 +42,7 @@ async def created_qe_management(call: types.CallbackQuery, callback_data: dict, 
     questionnaire = await db_commands.select_questionnaire(quest_id=quest_id)
     if act == "get_file":
         passed_by = questionnaire.passed_by
-        if passed_by > PASSED_BY_MINIMUM:
+        if passed_by >= PASSED_BY_MINIMUM:
             await CreatedQeStatistics.SelectFileType.set()
             await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
                                              text="📎 Выберите <b>расширение</b> файла:\n\n"
@@ -51,23 +53,23 @@ async def created_qe_management(call: types.CallbackQuery, callback_data: dict, 
 
     elif act == "freeze":
         await db_commands.freeze_questionnaire(quest_id=quest_id, is_active="false")
-        await call.answer("Опрос остановлен", show_alert=True)
-        await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id, text=text,
-                                         reply_markup=created_qe_statistics_kb(is_active=questionnaire.is_active))
+        await call.answer("Опрос остановлен.", show_alert=True)
+        await call.bot.edit_message_reply_markup(chat_id=call.from_user.id, message_id=call.message.message_id,
+                                                 reply_markup=created_qe_statistics_kb(is_active=questionnaire.is_active))
 
     elif act == "resume":
         await db_commands.freeze_questionnaire(quest_id=quest_id, is_active="true")
-        await call.answer("Опрос возобновлён", show_alert=True)
-        await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id, text=text,
-                                         reply_markup=created_qe_statistics_kb(is_active=questionnaire.is_active))
+        await call.answer("Опрос возобновлён.", show_alert=True)
+        await call.bot.edit_message_reply_markup(chat_id=call.from_user.id, message_id=call.message.message_id,
+                                                 reply_markup=created_qe_statistics_kb(is_active=questionnaire.is_active))
 
     elif act == "delete":
         await CreatedQeStatistics.ApproveDelete.set()
         await call.answer("⚠️ После удаления опрос восстановить уже никак не получится, а также пропадёт вся статистика"
-                          " по данному опросу", show_alert=True)
+                          " по данному опросу.", show_alert=True)
         await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
                                          text=f"Подтвердите удаление опроса: <b>{questionnaire.title}</b>",
-                                         reply_markup=qe_answers_approve_kb)
+                                         reply_markup=delete_qe_approve_kb)
 
     elif act == "step_back":
         await CreatedQeStatistics.SelectQE.set()
@@ -164,5 +166,5 @@ def register_created_qe_management(dp: Dispatcher):
                                        state=CreatedQeStatistics.SelectStatsAct)
     dp.register_callback_query_handler(choose_file_type, file_type_callback.filter(f_type=f_types),
                                        state=CreatedQeStatistics.SelectFileType)
-    dp.register_callback_query_handler(delete_qe_approve, qe_answers_approve_callback.filter(approve=qe_answers_approves),
+    dp.register_callback_query_handler(delete_qe_approve, delete_qe_approve_callback.filter(approve=delete_qe_approves),
                                        state=CreatedQeStatistics.ApproveDelete)
