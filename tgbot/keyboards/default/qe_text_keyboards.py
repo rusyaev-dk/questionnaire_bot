@@ -9,30 +9,11 @@ main_menu_kb = ReplyKeyboardMarkup(
         ],
         [
             KeyboardButton(text="🗂 Созданные опросы"),
-            KeyboardButton(text="📌 Пройденные опросы")
-        ]
-    ]
-)
-
-
-cancel_fill_qe = ReplyKeyboardMarkup(
-    row_width=1,
-    resize_keyboard=True,
-    keyboard=[
+            KeyboardButton(text="🗃 Пройденные опросы")
+        ],
         [
-            KeyboardButton(text="❌ Отмена")
+            KeyboardButton(text="📊 Моя статистика"),
+            KeyboardButton(text="👨‍💻 Разработчик")
         ]
     ]
 )
-
-
-# question_type_kb = ReplyKeyboardMarkup(
-#     row_width=2,
-#     resize_keyboard=True,
-#     keyboard=[
-#         [
-#             KeyboardButton(text="Открытый"),
-#             KeyboardButton(text="")
-#         ]
-#     ]
-# )

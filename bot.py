@@ -14,6 +14,7 @@ from tgbot.handlers.users.pass_questionnaire import register_pass_questionnaire
 from tgbot.handlers.users.passed_qe_management import register_passed_qe_management
 from tgbot.handlers.users.bot_start import register_bot_start
 from tgbot.handlers.users.main_menu import register_main_menu
+from tgbot.handlers.users.additioncal_commands import register_service_commands
 from tgbot.middlewares.db import DbMiddleware
 from tgbot.middlewares.throttling import ThrottlingMiddleware
 from tgbot.services import set_bot_commands
@@ -36,13 +37,15 @@ def register_all_filters(dp):
 def register_all_handlers(dp):
 
     register_bot_start(dp)
-    register_main_menu(dp)
+    register_service_commands(dp)
 
     register_create_questionnaire(dp)
     register_pass_questionnaire(dp)
 
     register_created_qe_management(dp)
     register_passed_qe_management(dp)
+
+    register_main_menu(dp)
 
     register_echo(dp)
 
@@ -60,7 +63,7 @@ async def main():
     dp = Dispatcher(bot, storage=storage)
 
     await db_gino.on_startup(dp)
-    await db.gino.drop_all()
+    # await db.gino.drop_all()
     await db.gino.create_all()
 
     bot['config'] = config

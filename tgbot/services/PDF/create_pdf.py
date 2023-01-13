@@ -12,19 +12,19 @@ from borb.pdf.canvas.font.font import Font
 from borb.pdf.canvas.font.simple_font.true_type_font import TrueTypeFont
 
 from tgbot.services.database import db_commands
+from tgbot.services.database.db_models import Questionnaire
 
 
-async def create_pdf_file(qe_text_answers_tab: list, quest_id: str):
+async def create_pdf_file(questionnaire: Questionnaire):
     doc: Document = Document()
     page: Page = Page()
     doc.add_page(page)
     layout: PageLayout = SingleColumnLayout(page)
 
-    questionnaire = await db_commands.select_questionnaire(quest_id=quest_id)
     title = questionnaire.title
+    quantity = questionnaire.questions_quantity
     author = await db_commands.select_user(id=questionnaire.creator_id)
-    quantity = int(questionnaire.questions_quantity)
-    questions = questionnaire.questions
+    questions = await db_commands.select_questions(qe_id=questionnaire.qe_id)
 
     font_path: Path = Path(__file__).parent / "calibri.ttf"
     custom_font: Font = TrueTypeFont.true_type_font_from_file(font_path)
@@ -68,17 +68,18 @@ async def create_pdf_file(qe_text_answers_tab: list, quest_id: str):
     table.add(Paragraph("№", font=custom_font))
 
     for i in range(quantity):
-        table.add(Paragraph(f"{questions[i]}", font=custom_font))
+        table.add(Paragraph(f"{questions[i].question_text}", font=custom_font))
 
     table.even_odd_row_colors(X11Color("LightGray"), X11Color("White"))
     counter = 1
-    for field in qe_text_answers_tab:
-        qe_text_answers = await db_commands.select_qe_answers(quest_id=quest_id, respondent_id=field.respondent_id)
-        answers = qe_text_answers.answers
+    passed_qes = await db_commands.select_passed_users(qe_id=questionnaire.qe_id)
+    for passed_qe in passed_qes:
+        answers = await db_commands.select_user_answers(respondent_id=passed_qe.respondent_id,
+                                                        qe_id=questionnaire.qe_id)
         for i in range(quantity):
             if i % quantity == 0:
                 table.add(Paragraph(f"{counter}", font=custom_font))
-            table.add(Paragraph(f"{answers[i]}", font=custom_font))
+            table.add(Paragraph(f"{answers[i].answer_text}", font=custom_font))
         counter += 1
 
     table.set_padding_on_all_cells(Decimal(5), Decimal(5), Decimal(5), Decimal(5))

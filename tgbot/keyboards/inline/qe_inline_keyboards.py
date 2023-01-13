@@ -3,42 +3,29 @@ from aiogram.utils.callback_data import CallbackData
 
 from tgbot.services.database import db_commands
 from tgbot.services.dependences import ANSWER_LETTERS
+from tgbot.services.service_functions import parse_share_link
 
-qe_type_callback = CallbackData("action", "qe_type")
 question_type_callback = CallbackData("action", "question_type")
 qe_approve_callback = CallbackData("action", "approve")
 answers_approve_callback = CallbackData("action", "approve")
-qe_list_callback = CallbackData("action", "quest_id")
+qe_list_callback = CallbackData("action", "qe_id")
 statistics_kb_callback = CallbackData("action", "act")
 file_type_callback = CallbackData("action", "f_type")
 delete_qe_approve_callback = CallbackData("action", "approve")
 replay_qe_approve_callback = CallbackData("action", "approve")
 answer_options_callback = CallbackData("action", "answer")
 
-qe_types = ["test", "text", "main_menu"]
-questionnaire_type_kb = InlineKeyboardMarkup(
-    row_width=2,
-    inline_keyboard=[
-        [
-            InlineKeyboardButton(text="Текстовый опрос", callback_data=qe_type_callback.new(qe_type="text")),
-            InlineKeyboardButton(text="Тесты", callback_data=qe_type_callback.new(qe_type="test"))
-        ],
-        [
-            InlineKeyboardButton(text="◀️ Главное меню", callback_data=qe_type_callback.new(qe_type="main_menu"))
-        ]
-    ]
-)
 
-question_types = ["text", "test", "cancel"]
+question_types = ["open", "closed", "cancel"]
 question_type_kb = InlineKeyboardMarkup(
     row_width=2,
     inline_keyboard=[
         [
-            InlineKeyboardButton(text="Открытый", callback_data=question_type_callback.new(question_type="text")),
-            InlineKeyboardButton(text="Закрытый", callback_data=question_type_callback.new(question_type="test"))
+            InlineKeyboardButton(text="Открытый", callback_data=question_type_callback.new(question_type="open")),
+            InlineKeyboardButton(text="Закрытый", callback_data=question_type_callback.new(question_type="closed"))
         ],
         [
-            InlineKeyboardButton(text="Отменить опрос", callback_data=question_type_callback.new(question_type="cancel"))
+            InlineKeyboardButton(text="❌ Отмена", callback_data=question_type_callback.new(question_type="cancel"))
         ]
     ]
 )
@@ -67,45 +54,57 @@ answers_approve_kb = InlineKeyboardMarkup(
     ]
 )
 
+cancel_create_qe_callback = CallbackData("action", "approve")
+cancel_create_qe_kb = InlineKeyboardMarkup(
+    row_width=1,
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(text="❌ Отмена", callback_data=cancel_create_qe_callback.new(approve="cancel_create"))
+        ]
+    ]
+)
+
 
 async def qe_list_kb(questionnaires: list):
     buttons = []
-    for quest_id in questionnaires:
-        questionnaire = await db_commands.select_questionnaire(quest_id=quest_id)
+    for qe in questionnaires:
+        questionnaire = await db_commands.select_questionnaire(qe_id=qe.qe_id)
         buttons.append(InlineKeyboardButton(text=f"{questionnaire.title}",
-                                            callback_data=qe_list_callback.new(quest_id=f"{quest_id}")))
+                                            callback_data=qe_list_callback.new(qe_id=f"{qe.qe_id}")))
 
     buttons.append(InlineKeyboardButton(text="◀️ Главное меню",
-                                        callback_data=qe_list_callback.new(quest_id="main_menu")))
+                                        callback_data=qe_list_callback.new(qe_id="main_menu")))
     keyboard = InlineKeyboardMarkup(row_width=1)
     for button in buttons:
         keyboard.row(button)
     return keyboard
 
 
-statistics_acts = ["step_back", "main_menu", "get_file", "freeze", "resume", "delete"]
+statistics_acts = ["step_back", "main_menu", "get_file", "freeze_qe", "resume_qe", "delete", "share_link"]
 
 
-def created_qe_statistics_kb(is_active: str):
+async def created_qe_statistics_kb(is_active: str, qe_id: str):
     keyboard = InlineKeyboardMarkup(row_width=2)
     if is_active == "true":
-        text = "⏸ Остановить опрос"
-        act = "freeze"
+        status = "⏸ Остановить опрос"
+        act = "freeze_qe"
     else:
-        text = "▶️ Возобновить опрос"
-        act = "resume"
+        status = "▶️ Возобновить опрос"
+        act = "resume_qe"
+    share_link = await parse_share_link(qe_id=qe_id)
     buttons = [
         InlineKeyboardButton(text="📨 Посмотреть ответы", callback_data=statistics_kb_callback.new(act="get_file")),
-        InlineKeyboardButton(text=f"{text}", callback_data=statistics_kb_callback.new(act=f"{act}")),
+        InlineKeyboardButton(text="📎 Ссылка", switch_inline_query=share_link),
+        InlineKeyboardButton(text=f"{status}", callback_data=statistics_kb_callback.new(act=f"{act}")),
         InlineKeyboardButton(text="🚮 Удалить опрос", callback_data=statistics_kb_callback.new(act="delete")),
         InlineKeyboardButton(text="◀️ Назад", callback_data=statistics_kb_callback.new(act="step_back")),
         InlineKeyboardButton(text="⏺ Главное меню", callback_data=statistics_kb_callback.new(act="main_menu"))
     ]
 
-    keyboard.row(buttons[0])
-    keyboard.row(buttons[1])
+    keyboard.row(buttons[0], buttons[1])
     keyboard.row(buttons[2])
-    keyboard.row(buttons[3], buttons[4])
+    keyboard.row(buttons[3])
+    keyboard.row(buttons[4], buttons[5])
     return keyboard
 
 
@@ -143,7 +142,7 @@ delete_qe_approve_kb = InlineKeyboardMarkup(
 def passed_qe_statistics_kb(share_text: str):
     keyboard = InlineKeyboardMarkup(row_width=2)
     buttons = [
-        InlineKeyboardButton(text="✉️ Поделиться ответами", switch_inline_query=f"{share_text}"),
+        InlineKeyboardButton(text="✉️ Поделиться ответами", switch_inline_query=share_text),
         InlineKeyboardButton(text="◀️ Назад", callback_data=statistics_kb_callback.new(act="step_back")),
         InlineKeyboardButton(text="⏺ Главное меню", callback_data=statistics_kb_callback.new(act="main_menu"))
     ]
@@ -152,11 +151,11 @@ def passed_qe_statistics_kb(share_text: str):
     return keyboard
 
 
-def share_link_kb(link: str):
+def share_link_kb(share_link: str):
     keyboard = InlineKeyboardMarkup(row_width=1)
     buttons = [
         InlineKeyboardButton(text="✉️ Поделиться ссылкой",
-                             switch_inline_query=f"{link}")
+                             switch_inline_query=share_link)
     ]
     keyboard.row(buttons[0])
     return keyboard
@@ -175,16 +174,16 @@ replay_qe_approve_kb = InlineKeyboardMarkup(
 )
 
 
-def generate_answer_options(answers_quantity: int):
+def generate_answer_options(options_quantity: int):
     buttons = []
-    for i in range(answers_quantity):
+    for i in range(options_quantity):
         buttons.append(InlineKeyboardButton(text=f"{ANSWER_LETTERS[i]}",
                                             callback_data=answer_options_callback.new(answer=f"{ANSWER_LETTERS[i]}")))
-    buttons.append(InlineKeyboardButton(text="Отмена", callback_data=answer_options_callback.new(answer="cancel")))
+    buttons.append(InlineKeyboardButton(text="❌ Отмена", callback_data=answer_options_callback.new(answer="cancel")))
 
-    keyboard = InlineKeyboardMarkup(row_width=answers_quantity)
+    keyboard = InlineKeyboardMarkup(row_width=options_quantity)
 
-    for i in range(answers_quantity):
+    for i in range(options_quantity):
         keyboard.insert(buttons[i])
 
     keyboard.row(buttons[-1])

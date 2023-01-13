@@ -12,151 +12,162 @@ from tgbot.services.Excel.create_xlsx import create_xlsx_file
 from tgbot.services.PDF.create_pdf import create_pdf_file
 from tgbot.services.database import db_commands
 from tgbot.services.dependences import PASSED_BY_MINIMUM
-from tgbot.services.service_functions import created_qe_info
+from tgbot.services.service_functions import created_qe_info, statistics_qe_text
 
 
 async def get_created_qe_statistics(call: types.CallbackQuery, callback_data: dict, state: FSMContext):
-    quest_id = callback_data.get("quest_id")
-    if quest_id == "main_menu":
-        await state.finish()
+    qe_id = callback_data.get("qe_id")
+    if qe_id == "main_menu":
         await call.bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
         await call.message.answer("Главное меню:", reply_markup=main_menu_kb)
+        await state.finish()
     else:
-        await CreatedQeStatistics.SelectStatsAct.set()
-        await state.update_data(quest_id=quest_id)
-        questionnaire = await db_commands.select_questionnaire(quest_id=quest_id)
-        text = await created_qe_info(questionnaire=questionnaire)
-        await state.update_data(text=text[1])
+        questionnaire = await db_commands.select_questionnaire(qe_id=qe_id)
+        qe_text = await created_qe_info(questionnaire=questionnaire)
+        stat_text = await statistics_qe_text(questionnaire=questionnaire)
+
         await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                         text=text[0])
-        await call.message.answer(text=text[1],
-                                  reply_markup=created_qe_statistics_kb(is_active=questionnaire.is_active))
+                                         text=qe_text)
+        keyboard = await created_qe_statistics_kb(is_active=questionnaire.is_active, qe_id=qe_id)
+        await call.message.answer(text=stat_text, reply_markup=keyboard)
+        await state.update_data(qe_id=qe_id)
+        await CreatedQeStatistics.SelectStatsAct.set()
 
 
 async def created_qe_management(call: types.CallbackQuery, callback_data: dict, state: FSMContext):
     act = callback_data.get("act")
 
     data = await state.get_data()
-    quest_id = data.get("quest_id")
-    text = data.get("text")
-    questionnaire = await db_commands.select_questionnaire(quest_id=quest_id)
+    qe_id = data.get("qe_id")
+    questionnaire = await db_commands.select_questionnaire(qe_id=qe_id)
+
     if act == "get_file":
         passed_by = questionnaire.passed_by
         if passed_by >= PASSED_BY_MINIMUM:
-            await CreatedQeStatistics.SelectFileType.set()
             await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                             text="📎 Выберите <b>расширение</b> файла:\n\n"
-                                                  "📍 Примечание: тут будет примечание.", reply_markup=file_type_kb)
+                                             text="📎 Выберите <b>формат</b> файла:\n\n"
+                                                  "ℹ️ Примечание: тут будет примечание.", reply_markup=file_type_kb)
+            await CreatedQeStatistics.SelectFileType.set()
         else:
             await call.answer(f"👥 Чтобы получить файл с ответами, Ваш опрос должно пройти "
                               f"как минимум {PASSED_BY_MINIMUM} человек.", show_alert=True)
 
-    elif act == "freeze":
-        await db_commands.freeze_questionnaire(quest_id=quest_id, is_active="false")
+    elif act == "freeze_qe":
+        await db_commands.freeze_questionnaire(qe_id=qe_id, is_active="false")
         await call.answer("Опрос остановлен.", show_alert=True)
-        await call.bot.edit_message_reply_markup(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                                 reply_markup=created_qe_statistics_kb(is_active=questionnaire.is_active))
 
-    elif act == "resume":
-        await db_commands.freeze_questionnaire(quest_id=quest_id, is_active="true")
+        questionnaire = await db_commands.select_questionnaire(qe_id=qe_id)
+        stat_text = await statistics_qe_text(questionnaire=questionnaire)
+        keyboard = await created_qe_statistics_kb(is_active=questionnaire.is_active, qe_id=qe_id)
+        await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id, text=stat_text,
+                                         reply_markup=keyboard)
+
+    elif act == "resume_qe":
+        await db_commands.freeze_questionnaire(qe_id=qe_id, is_active="true")
         await call.answer("Опрос возобновлён.", show_alert=True)
-        await call.bot.edit_message_reply_markup(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                                 reply_markup=created_qe_statistics_kb(is_active=questionnaire.is_active))
+
+        questionnaire = await db_commands.select_questionnaire(qe_id=qe_id)
+        stat_text = await statistics_qe_text(questionnaire=questionnaire)
+        keyboard = await created_qe_statistics_kb(is_active=questionnaire.is_active, qe_id=qe_id)
+        await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id, text=stat_text,
+                                         reply_markup=keyboard)
 
     elif act == "delete":
-        await CreatedQeStatistics.ApproveDelete.set()
-        await call.answer("⚠️ После удаления опрос восстановить уже никак не получится, а также пропадёт вся статистика"
-                          " по данному опросу.", show_alert=True)
+        await call.answer("⚠️ После удаления опроса пропадёт вся статистика и ответы. Также восстановить опрос уже "
+                          "не получится", show_alert=True)
         await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
                                          text=f"Подтвердите удаление опроса: <b>{questionnaire.title}</b>",
                                          reply_markup=delete_qe_approve_kb)
+        await CreatedQeStatistics.ApproveDelete.set()
 
     elif act == "step_back":
-        await CreatedQeStatistics.SelectQE.set()
         keyboard = data.get("keyboard")
         await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
                                          text="🔍 Выберите опрос для отображения статистики:", reply_markup=keyboard)
+        await CreatedQeStatistics.SelectQE.set()
 
     elif act == "main_menu":
-        await state.finish()
         await call.bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
         await call.message.answer("Главное меню:", reply_markup=main_menu_kb)
+        await state.finish()
 
 
 async def choose_file_type(call: types.CallbackQuery, callback_data: dict, state: FSMContext):
     f_type = callback_data.get("f_type")
 
     data = await state.get_data()
-    quest_id = data.get("quest_id")
-    text = data.get("text")
-    questionnaire = await db_commands.select_questionnaire(quest_id=quest_id)
-    qe_text_answers_tab = await db_commands.select_qe_answers_tab(quest_id=quest_id)
+    qe_id = data.get("qe_id")
+
+    questionnaire = await db_commands.select_questionnaire(qe_id=qe_id)
+    stat_text = await statistics_qe_text(questionnaire=questionnaire)
+
     if f_type == "pdf":
-        file_path = await create_pdf_file(quest_id=quest_id, qe_text_answers_tab=qe_text_answers_tab)
+        file_path = await create_pdf_file(questionnaire=questionnaire)
         if file_path:
             await call.bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
             await call.message.answer_document(types.InputFile(f"{file_path}"), caption="📌 Файл по Вашему опросу")
-            await CreatedQeStatistics.SelectStatsAct.set()
-            await call.message.answer(text=text,
-                                      reply_markup=created_qe_statistics_kb(is_active=questionnaire.is_active))
+            keyboard = await created_qe_statistics_kb(is_active=questionnaire.is_active, qe_id=qe_id)
+            await call.message.answer(text=stat_text, reply_markup=keyboard)
             os.remove(file_path)
+            await CreatedQeStatistics.SelectStatsAct.set()
         else:
             await call.answer("Что-то пошло не так...", show_alert=False)
 
     elif f_type == "xlsx":
-        file_path = await create_xlsx_file(quest_id=quest_id, qe_text_answers_tab=qe_text_answers_tab)
+        file_path = await create_xlsx_file(questionnaire=questionnaire)
         if file_path:
             await call.bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
             await call.message.answer_document(types.InputFile(f"{file_path}"), caption="📌 Файл по Вашему опросу")
-            await CreatedQeStatistics.SelectStatsAct.set()
-            await call.message.answer(text=text,
-                                      reply_markup=created_qe_statistics_kb(is_active=questionnaire.is_active))
+            keyboard = await created_qe_statistics_kb(is_active=questionnaire.is_active, qe_id=qe_id)
+            await call.message.answer(text=stat_text, reply_markup=keyboard)
             os.remove(file_path)
+            await CreatedQeStatistics.SelectStatsAct.set()
         else:
             await call.answer("Что-то пошло не так. Сообщите об ошибке разработчику!", show_alert=True)
 
     elif f_type == "step_back":
+        keyboard = await created_qe_statistics_kb(is_active=questionnaire.is_active, qe_id=qe_id)
+        await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id, text=stat_text,
+                                         reply_markup=keyboard)
         await CreatedQeStatistics.SelectStatsAct.set()
-        await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id, text=text,
-                                         reply_markup=created_qe_statistics_kb(is_active=questionnaire.is_active))
 
     elif f_type == "main_menu":
-        await state.finish()
         await call.bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
         await call.message.answer(text="Главное меню:", reply_markup=main_menu_kb)
+        await state.finish()
 
 
 async def delete_qe_approve(call: types.CallbackQuery, callback_data: dict, state: FSMContext):
     approve = callback_data.get("approve")
     data = await state.get_data()
-    quest_id = data.get("quest_id")
+    qe_id = data.get("qe_id")
 
-    questionnaire = await db_commands.select_questionnaire(quest_id=quest_id)
     if approve == "delete":
-        await db_commands.delete_questionnaire(quest_id=quest_id)
-        await db_commands.remove_user_created_qe(creator_id=call.from_user.id, quest_id=quest_id)
-        await call.answer("Опрос удалён", show_alert=True)
+        await db_commands.delete_questionnaire(qe_id=qe_id)
 
-        user = await db_commands.select_user(id=call.from_user.id)
-        created_questionnaires = user.created_questionnaires
-        keyboard = await qe_list_kb(created_questionnaires)
-        if len(created_questionnaires) > 0:
+        await call.answer("Опрос удалён.", show_alert=True)
+
+        created_qes = await db_commands.select_user_created_qes(respondent_id=call.from_user.id)
+        if len(created_qes) > 0:
+            keyboard = await qe_list_kb(questionnaires=created_qes)
             await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
                                              text="🔍 Выберите опрос для отображения статистики:", reply_markup=keyboard)
             await state.update_data(keyboard=keyboard)
             await CreatedQeStatistics.SelectQE.set()
         else:
             await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                             text="У вас нет созданных опросов.")
-            await state.finish()
+                                             text="📭 У Вас нет созданных опросов.")
             await call.message.answer("Главное меню:", reply_markup=main_menu_kb)
+            await state.finish()
 
     elif approve == "cancel":
-        await call.answer("Удаление опроса отменено", show_alert=False)
+        await call.answer("Удаление опроса отменено.", show_alert=False)
+        questionnaire = await db_commands.select_questionnaire(qe_id=qe_id)
+        stat_text = await statistics_qe_text(questionnaire=questionnaire)
+        keyboard = await created_qe_statistics_kb(is_active=questionnaire.is_active, qe_id=qe_id)
+        await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id, text=stat_text,
+                                         reply_markup=keyboard)
         await CreatedQeStatistics.SelectStatsAct.set()
-        text = data.get("text")
-        await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id, text=text,
-                                         reply_markup=created_qe_statistics_kb(is_active=questionnaire.is_active))
 
 
 def register_created_qe_management(dp: Dispatcher):
