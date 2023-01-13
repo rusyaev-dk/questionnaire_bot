@@ -51,12 +51,12 @@ async def select_question_type(call: types.CallbackQuery, callback_data: dict, s
     counter = data.get("counter")
     if question_type == "open":
         await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                         text=f"🔍 Введите {counter + 1}-й вопрос:")
+                                         text=f"❓ Введите {counter + 1}-й вопрос:")
         await state.update_data(question_type="open")
         await CreateQe.QuestionText.set()
     elif question_type == "closed":
         await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                         text=f"🔍 Введите {counter + 1}-й вопрос:")
+                                         text=f"❓ Введите {counter + 1}-й вопрос:")
         await state.update_data(question_type="closed")
         await CreateQe.QuestionText.set()
     elif question_type == "cancel":
@@ -90,10 +90,10 @@ async def get_question_text(message: types.Message, state: FSMContext):
             questionnaire = await db_commands.select_questionnaire(qe_id=qe_id)
             text = await parse_questions_text(questionnaire=questionnaire)
             await message.answer(text, reply_markup=questionnaire_approve_kb)
-            await CreateQe.Approve.set()
+            await CreateQe.CreateApprove.set()
     else:
         await message.answer("🔸 Введите <b>количество</b> вариантов <b>ответа</b>:")
-        await CreateQe.ClosedAnswersQuantity.set()
+        await CreateQe.AnswerOptionsQuantity.set()
 
 
 async def get_closed_answers_quantity(message: types.Message, state: FSMContext):
@@ -111,7 +111,7 @@ async def get_closed_answers_quantity(message: types.Message, state: FSMContext)
 
                 await state.update_data(answers_quantity=answers_quantity, closed_counter=closed_counter)
                 await message.answer("📌 Введите 1-й вариант ответа:")
-                await CreateQe.ClosedAnswerText.set()
+                await CreateQe.AnswerOptionText.set()
                 break
         except ValueError:
             await message.answer("❗️ Введите целочисленное значение.")
@@ -148,11 +148,11 @@ async def get_closed_answer_text(message: types.Message, state: FSMContext):
                 questionnaire = await db_commands.select_questionnaire(qe_id=qe_id)
                 text = await parse_questions_text(questionnaire=questionnaire)
                 await message.answer(text, reply_markup=questionnaire_approve_kb)
-                await CreateQe.Approve.set()
+                await CreateQe.CreateApprove.set()
             break
 
 
-async def approve_questionnaire(call: types.CallbackQuery, callback_data: dict, state: FSMContext):
+async def questionnaire_approve(call: types.CallbackQuery, callback_data: dict, state: FSMContext):
     approve = callback_data.get("approve")
     data = await state.get_data()
     qe_id = data.get("qe_id")
@@ -184,8 +184,8 @@ def register_create_questionnaire(dp: Dispatcher):
                                        state=CreateQe.QuestionType)
 
     dp.register_message_handler(get_question_text, content_types=text, state=CreateQe.QuestionText)
-    dp.register_message_handler(get_closed_answers_quantity, content_types=text, state=CreateQe.ClosedAnswersQuantity)
-    dp.register_message_handler(get_closed_answer_text, content_types=text, state=CreateQe.ClosedAnswerText)
+    dp.register_message_handler(get_closed_answers_quantity, content_types=text, state=CreateQe.AnswerOptionsQuantity)
+    dp.register_message_handler(get_closed_answer_text, content_types=text, state=CreateQe.AnswerOptionText)
 
-    dp.register_callback_query_handler(approve_questionnaire, qe_approve_callback.filter(approve=qe_approves),
-                                       state=CreateQe.Approve)
+    dp.register_callback_query_handler(questionnaire_approve, qe_approve_callback.filter(approve=qe_approves),
+                                       state=CreateQe.CreateApprove)

@@ -78,7 +78,7 @@ async def created_qe_management(call: types.CallbackQuery, callback_data: dict, 
         await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
                                          text=f"Подтвердите удаление опроса: <b>{questionnaire.title}</b>",
                                          reply_markup=delete_qe_approve_kb)
-        await CreatedQeStatistics.ApproveDelete.set()
+        await CreatedQeStatistics.DeleteApprove.set()
 
     elif act == "step_back":
         keyboard = data.get("keyboard")
@@ -178,4 +178,4 @@ def register_created_qe_management(dp: Dispatcher):
     dp.register_callback_query_handler(choose_file_type, file_type_callback.filter(f_type=f_types),
                                        state=CreatedQeStatistics.SelectFileType)
     dp.register_callback_query_handler(delete_qe_approve, delete_qe_approve_callback.filter(approve=delete_qe_approves),
-                                       state=CreatedQeStatistics.ApproveDelete)
+                                       state=CreatedQeStatistics.DeleteApprove)

@@ -82,9 +82,12 @@ async def get_average_completion_time(qe_id: str):
         for passed_qe in passed_qes:
             completion_time += passed_qe.completion_time
         if completion_time / len(passed_qes) > 60:
-            return completion_time / (len(passed_qes) * 60)
-        return completion_time / len(passed_qes)
-    return 0
+            time_value = "мин."
+            return completion_time / (len(passed_qes) * 60), time_value
+        time_value = "сек."
+        return completion_time / len(passed_qes), time_value
+    time_value = "сек."
+    return 0, time_value
 
 
 async def statistics_qe_text(questionnaire: Questionnaire):
@@ -97,17 +100,12 @@ async def statistics_qe_text(questionnaire: Questionnaire):
     else:
         pass_percent = questionnaire.started_by / questionnaire.passed_by * 100
 
-    average_completion_time = await get_average_completion_time(qe_id=questionnaire.qe_id)
-    if average_completion_time > 60:
-        time_value = "мин."
-    else:
-        time_value = "сек."
-
+    average_ct = await get_average_completion_time(qe_id=questionnaire.qe_id)
     statistics_text = (f"📊 Статистика опроса:\n"
                        f"• Начали проходить: <b>{questionnaire.started_by}</b> чел.\n"
                        f"• Прошли: <b>{questionnaire.passed_by}</b> чел.\n"
                        f"• Процент прохождения: <b>{pass_percent}%</b>\n"
-                       f"• Среднее время прохождения: <b>{average_completion_time:.1f}</b> {time_value}\n"
+                       f"• Среднее время прохождения: <b>{average_ct[0]:.1f}</b> {average_ct[1]}\n"
                        f"• Дата создания: <b>{questionnaire.created_at}</b>")
     return statistics_text
 

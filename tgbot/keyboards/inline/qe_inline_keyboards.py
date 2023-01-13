@@ -48,21 +48,21 @@ answers_approve_kb = InlineKeyboardMarkup(
         [
             InlineKeyboardButton(text="✅ Отправить", callback_data=answers_approve_callback.new(
                 approve="send")),
-            InlineKeyboardButton(text="❌ Отменить", callback_data=answers_approve_callback.new(
+            InlineKeyboardButton(text="❌ Отмена", callback_data=answers_approve_callback.new(
                 approve="delete"))
         ]
     ]
 )
 
-cancel_create_qe_callback = CallbackData("action", "approve")
-cancel_create_qe_kb = InlineKeyboardMarkup(
-    row_width=1,
-    inline_keyboard=[
-        [
-            InlineKeyboardButton(text="❌ Отмена", callback_data=cancel_create_qe_callback.new(approve="cancel_create"))
-        ]
-    ]
-)
+# cancel_create_qe_callback = CallbackData("action", "approve")
+# cancel_create_qe_kb = InlineKeyboardMarkup(
+#     row_width=1,
+#     inline_keyboard=[
+#         [
+#             InlineKeyboardButton(text="❌ Отмена", callback_data=cancel_create_qe_callback.new(approve="cancel_create"))
+#         ]
+#     ]
+# )
 
 
 async def qe_list_kb(questionnaires: list):
@@ -161,6 +161,18 @@ def share_link_kb(share_link: str):
     return keyboard
 
 
+pass_qe_approve_callback = CallbackData("action", "approve")
+pass_qe_approves = ["pass", "cancel"]
+pass_qe_approve_kb = InlineKeyboardMarkup(
+    row_width=2,
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(text="✅ Начать", callback_data=pass_qe_approve_callback.new(approve="pass")),
+            InlineKeyboardButton(text="❌ Отмена", callback_data=pass_qe_approve_callback.new(approve="cancel"))
+        ]
+    ]
+)
+
 replay_approves = ["cancel", "replay"]
 replay_qe_approve_kb = InlineKeyboardMarkup(
     row_width=2,
@@ -174,7 +186,7 @@ replay_qe_approve_kb = InlineKeyboardMarkup(
 )
 
 
-def generate_answer_options(options_quantity: int):
+def parse_answer_options_kb(options_quantity: int):
     buttons = []
     for i in range(options_quantity):
         buttons.append(InlineKeyboardButton(text=f"{ANSWER_LETTERS[i]}",

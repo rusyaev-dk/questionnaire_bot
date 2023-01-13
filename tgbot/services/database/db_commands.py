@@ -13,6 +13,7 @@ async def add_user(id: int, name: str):
     try:
         user = User(id=id, name=name)
         await user.create()
+        return 0
     except UniqueViolationError:
         print("Пользователь уже есть в базе данных!")
         pass
@@ -149,6 +150,11 @@ async def select_passed_qes(qe_id: str):
 
 async def count_users():
     total = await db.func.count(User.id).gino.scalar()
+    return total
+
+
+async def count_qes():
+    total = await db.func.count(Questionnaire.qe_id).gino.scalar()
     return total
 
 

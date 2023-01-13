@@ -4,30 +4,41 @@ from aiogram.dispatcher.filters.state import StatesGroup, State
 class CreateQe(StatesGroup):
     Title = State()
     QuestionsQuantity = State()
-    QuestionType = State()
 
+    QuestionType = State()
     QuestionText = State()
 
-    ClosedAnswersQuantity = State()
-    ClosedAnswerText = State()
+    AnswerOptionsQuantity = State()
+    AnswerOptionText = State()
 
-    Approve = State()
+    CreateApprove = State()
 
 
 class PassQe(StatesGroup):
+    PassBeginApprove = State()
+    PassReplayApprove = State()
+
     QuestionType = State()
     OpenAnswer = State()
     ClosedAnswer = State()
-    Approve = State()
+
+    PassEndApprove = State()
 
 
 class CreatedQeStatistics(StatesGroup):
     SelectQE = State()
+
     SelectStatsAct = State()
     SelectFileType = State()
-    ApproveDelete = State()
+
+    DeleteApprove = State()
 
 
 class PassedQeStatistics(StatesGroup):
     SelectQE = State()
     SelectStatsAct = State()
+
+
+class NotifyUsers(StatesGroup):
+    NotifyMedia = State()
+    NotifyApprove = State()

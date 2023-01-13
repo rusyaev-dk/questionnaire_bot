@@ -4,7 +4,7 @@ from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 
 from tgbot.keyboards.default.qe_text_keyboards import main_menu_kb
-from tgbot.keyboards.inline.qe_inline_keyboards import generate_answer_options, answers_approve_kb, \
+from tgbot.keyboards.inline.qe_inline_keyboards import parse_answer_options_kb, answers_approve_kb, \
     answer_options_callback, answers_approve_callback, answers_approves
 from tgbot.misc.states import PassQe
 from tgbot.services.database import db_commands
@@ -35,7 +35,7 @@ async def get_open_answer(message: types.Message, state: FSMContext):
             answer_options = await db_commands.select_answer_options(question_id=question.question_id)
             text = await parse_answer_options(answer_options=answer_options)
             await message.answer(f"❓ {counter + 1}-й вопрос: {question.question_text}\n\n{text}",
-                                 reply_markup=generate_answer_options(options_quantity=len(answer_options)))
+                                 reply_markup=parse_answer_options_kb(options_quantity=len(answer_options)))
             await PassQe.ClosedAnswer.set()
     else:
         start_time = data.get("start_time")
@@ -46,7 +46,7 @@ async def get_open_answer(message: types.Message, state: FSMContext):
         answers = await db_commands.select_user_answers(respondent_id=message.from_user.id, qe_id=qe_id)
         text += await parse_answers_text(answers=answers, answers_quantity=answers_quantity)
         await message.answer(text, reply_markup=answers_approve_kb)
-        await PassQe.Approve.set()
+        await PassQe.PassEndApprove.set()
 
 
 async def get_closed_answer(call: types.CallbackQuery, callback_data: dict, state: FSMContext):
@@ -80,7 +80,7 @@ async def get_closed_answer(call: types.CallbackQuery, callback_data: dict, stat
                 answer_options = await db_commands.select_answer_options(question_id=question.question_id)
                 text = await parse_answer_options(answer_options=answer_options)
                 await call.message.answer(f"❓ {counter + 1}-й вопрос: {question.question_text}\n\n{text}",
-                                          reply_markup=generate_answer_options(options_quantity=len(answer_options)))
+                                          reply_markup=parse_answer_options_kb(options_quantity=len(answer_options)))
                 await PassQe.ClosedAnswer.set()
         else:
             start_time = data.get("start_time")
@@ -91,10 +91,10 @@ async def get_closed_answer(call: types.CallbackQuery, callback_data: dict, stat
             answers = await db_commands.select_user_answers(respondent_id=call.from_user.id, qe_id=qe_id)
             text += await parse_answers_text(answers=answers, answers_quantity=answers_quantity)
             await call.message.answer(text, reply_markup=answers_approve_kb)
-            await PassQe.Approve.set()
+            await PassQe.PassEndApprove.set()
 
 
-async def approve_answers(call: types.CallbackQuery, callback_data: dict, state: FSMContext):
+async def answers_approve(call: types.CallbackQuery, callback_data: dict, state: FSMContext):
     approve = callback_data.get("approve")
     data = await state.get_data()
     qe_id = data.get("qe_id")
@@ -118,5 +118,5 @@ def register_pass_questionnaire(dp: Dispatcher):
     text = types.ContentType.TEXT
     dp.register_message_handler(get_open_answer, content_types=text, state=PassQe.OpenAnswer)
     dp.register_callback_query_handler(get_closed_answer, answer_options_callback.filter(), state=PassQe.ClosedAnswer)
-    dp.register_callback_query_handler(approve_answers, answers_approve_callback.filter(approve=answers_approves),
-                                       state=PassQe.Approve)
+    dp.register_callback_query_handler(answers_approve, answers_approve_callback.filter(approve=answers_approves),
+                                       state=PassQe.PassEndApprove)
