@@ -17,13 +17,13 @@ from tgbot.services.dependences import WELCOME_MESSAGE
 from tgbot.services.service_functions import parse_answer_options, get_average_completion_time
 
 
-@rate_limit(3)
+@rate_limit(5)
 async def bot_start(message: types.Message):
     await message.answer(text=WELCOME_MESSAGE, reply_markup=main_menu_kb)
     await db_commands.add_user(id=message.from_user.id, name=message.from_user.full_name)
 
 
-@rate_limit(3)
+@rate_limit(5)
 async def deeplink_bot_start(message: types.Message, state: FSMContext):
     qe_id = message.get_args()
 
@@ -67,6 +67,7 @@ async def pass_qe_approve(call: types.CallbackQuery, callback_data: dict, state:
         qe_id = data.get("qe_id")
 
         questionnaire = await db_commands.select_questionnaire(qe_id=qe_id)
+        await db_commands.increase_link_clicks(creator_id=questionnaire.creator_id)
         await increase_qe_started_by(qe_id=qe_id)
         questions = await db_commands.select_questions(qe_id=qe_id)
         question = questions[0]
@@ -112,6 +113,7 @@ async def replay_qe_approve(call: types.CallbackQuery, callback_data: dict, stat
                 await db_commands.decrease_passed_by(qe_id=qe_id)
 
                 # await increase_qe_started_by(qe_id=questionnaire.qe_id)
+                await db_commands.increase_link_clicks(creator_id=questionnaire.creator_id)
                 questions = await db_commands.select_questions(qe_id=qe_id)
                 question = questions[0]
 

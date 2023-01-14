@@ -101,7 +101,8 @@ async def created_qe_statistics_kb(is_active: str, qe_id: str):
         InlineKeyboardButton(text="⏺ Главное меню", callback_data=statistics_kb_callback.new(act="main_menu"))
     ]
 
-    keyboard.row(buttons[0], buttons[1])
+    keyboard.row(buttons[0])
+    keyboard.row(buttons[1])
     keyboard.row(buttons[2])
     keyboard.row(buttons[3])
     keyboard.row(buttons[4], buttons[5])

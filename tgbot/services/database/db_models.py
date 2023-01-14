@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, sql, ARRAY, Integer, Float
+from sqlalchemy import Column, String, sql, ARRAY, Integer, Float, BigInteger
 
 from tgbot.services.database.db_gino import TimeBaseModel, BaseModel
 
@@ -6,11 +6,13 @@ from tgbot.services.database.db_gino import TimeBaseModel, BaseModel
 class User(TimeBaseModel):
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True)
+    id = Column(BigInteger, primary_key=True)
     name = Column(String(100))
 
     created_qe_quantity = Column(Integer, default=0)
     passed_qe_quantity = Column(Integer, default=0)
+
+    link_clicks = Column(Integer, default=0)
 
     query: sql.Select
 
@@ -19,7 +21,7 @@ class Questionnaire(TimeBaseModel):
     __tablename__ = "questionnaires"
 
     qe_id = Column(String(20), primary_key=True)
-    creator_id = Column(Integer)
+    creator_id = Column(BigInteger)
 
     title = Column(String(100))
     is_active = Column(String(10), default="true")
@@ -58,9 +60,9 @@ class UserAnswer(BaseModel):
 
     answer_id = Column(String(50), primary_key=True)
     qe_id = Column(String(20))
-    respondent_id = Column(Integer)
+    respondent_id = Column(BigInteger)
 
-    answer_text = Column(String(500))
+    answer_text = Column(String(2000))
 
     query: sql.Select
 
@@ -69,7 +71,7 @@ class CreatedQuestionnaire(BaseModel):
     __tablename__ = "created_questionnaires"
 
     number = Column(Integer, primary_key=True, autoincrement=True)
-    respondent_id = Column(Integer)
+    creator_id = Column(BigInteger)
     qe_id = Column(String(20))
 
     query: sql.Select
@@ -79,7 +81,7 @@ class PassedQuestionnaire(BaseModel):
     __tablename__ = "passed_questionnaires"
 
     number = Column(Integer, primary_key=True, autoincrement=True)
-    respondent_id = Column(Integer)
+    respondent_id = Column(BigInteger)
     qe_id = Column(String(20))
 
     completion_time = Column(Float, default=0)

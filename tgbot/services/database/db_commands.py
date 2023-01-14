@@ -58,9 +58,9 @@ async def create_user_answer(answer_id: str, qe_id: str, respondent_id: int, ans
         pass
 
 
-async def add_created_qe(respondent_id: int, qe_id: str):
+async def add_created_qe(creator_id: int, qe_id: str):
     try:
-        created = CreatedQuestionnaire(respondent_id=respondent_id, qe_id=qe_id)
+        created = CreatedQuestionnaire(creator_id=creator_id, qe_id=qe_id)
         await created.create()
     except UniqueViolationError:
         print("Ошибка уникальности при создании опроса!")
@@ -110,12 +110,12 @@ async def select_user_answers(respondent_id: int, qe_id: str):
     return answers
 
 
-async def select_user_created_qes(respondent_id: int):
+async def select_user_created_qes(creator_id: int):
     """
     Selects created questionnaires with respondent_id key
     """
 
-    created_qes = await CreatedQuestionnaire.query.where(CreatedQuestionnaire.respondent_id == respondent_id).gino.all()
+    created_qes = await CreatedQuestionnaire.query.where(CreatedQuestionnaire.creator_id == creator_id).gino.all()
     return created_qes
 
 
@@ -192,8 +192,8 @@ async def delete_user_answers(respondent_id: int, qe_id: str):
         await answer.delete()
 
 
-async def delete_user_created_qe(respondent_id: int, qe_id: str):
-    created_qe = await CreatedQuestionnaire.query.where(and_(CreatedQuestionnaire.respondent_id == respondent_id,
+async def delete_user_created_qe(creator_id: int, qe_id: str):
+    created_qe = await CreatedQuestionnaire.query.where(and_(CreatedQuestionnaire.creator_id == creator_id,
                                                              CreatedQuestionnaire.qe_id == qe_id)).gino.first()
     await created_qe.delete()
 
@@ -245,13 +245,19 @@ async def increase_user_passed_qe_quantity(respondent_id: int):
     await user.update(passed_qe_quantity=passed_qe_quantity + 1).apply()
 
 
-async def increase_user_created_qe_quantity(respondent_id: int):
+async def increase_user_created_qe_quantity(creator_id: int):
     """
     Passed questionnaires quantity for all time
     """
-    user = await select_user(id=respondent_id)
+    user = await select_user(id=creator_id)
     created_qe_quantity = user.created_qe_quantity
     await user.update(created_qe_quantity=created_qe_quantity + 1).apply()
+
+
+async def increase_link_clicks(creator_id: int):
+    user = await select_user(id=creator_id)
+    link_clicks = user.link_clicks
+    await user.update(link_clicks=link_clicks + 1).apply()
 
 
 """ ____________Check functions____________ """

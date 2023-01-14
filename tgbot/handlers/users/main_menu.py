@@ -16,7 +16,7 @@ async def create_questionnaire(message: types.Message):
 
 @rate_limit(5)
 async def get_user_created_questionnaires(message: types.Message, state: FSMContext):
-    created_qes = await db_commands.select_user_created_qes(respondent_id=message.from_user.id)
+    created_qes = await db_commands.select_user_created_qes(creator_id=message.from_user.id)
 
     if len(created_qes) > 0:
         await message.answer("Тут будет гайд.", reply_markup=ReplyKeyboardRemove())
@@ -52,17 +52,18 @@ async def get_user_passed_questionnaires(message: types.Message, state: FSMConte
 @rate_limit(5)
 async def get_user_statistics(message: types.Message):
     user = await db_commands.select_user(id=message.from_user.id)
-    created_qes = await db_commands.select_user_created_qes(respondent_id=message.from_user.id)
+    created_qes = await db_commands.select_user_created_qes(creator_id=message.from_user.id)
     total_respondents = 0
     for created_qe in created_qes:
         qe_id = created_qe.qe_id
         questionnaire = await db_commands.select_questionnaire(qe_id=qe_id)
         total_respondents += questionnaire.passed_by
 
-    await message.answer("📊 Ваша статистика:\n\n"
-                         f"• Всего создано опросов: <b>{user.created_qe_quantity}</b>\n"
-                         f"• Всего пройдено опросов: <b>{user.passed_qe_quantity}</b>\n"
-                         f"• Всего опрошено людей: <b>{total_respondents}</b>")
+    await message.answer("📊 Ваша статистика:\n"
+                         f"• Создано опросов: <b>{user.created_qe_quantity}</b>\n"
+                         f"• Пройдено опросов: <b>{user.passed_qe_quantity}</b>\n"
+                         f"• Всего опрошено: <b>{total_respondents}</b> чел.\n"
+                         f"• По Вашим ссылкам перешло: <b>{user.link_clicks}</b> чел.")
 
 
 @rate_limit(5)

@@ -157,8 +157,8 @@ async def questionnaire_approve(call: types.CallbackQuery, callback_data: dict, 
     data = await state.get_data()
     qe_id = data.get("qe_id")
     if approve == "create":
-        await db_commands.add_created_qe(respondent_id=call.from_user.id, qe_id=qe_id)
-        await db_commands.increase_user_created_qe_quantity(respondent_id=call.from_user.id)
+        await db_commands.add_created_qe(creator_id=call.from_user.id, qe_id=qe_id)
+        await db_commands.increase_user_created_qe_quantity(creator_id=call.from_user.id)
         link = await parse_share_link(qe_id=qe_id)
         await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
                                          text="✅ Отлично, Ваш опрос добавлен в базу данных "
