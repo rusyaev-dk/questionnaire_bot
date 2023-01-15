@@ -2,7 +2,7 @@ import random, string
 
 from tgbot.services.database import db_commands
 from tgbot.services.database.db_models import Questionnaire
-from tgbot.services.dependences import ANSWER_LETTERS, BOT_USERNAME
+from tgbot.misc.dependences import ANSWER_LETTERS, BOT_USERNAME
 
 
 def generate_random_id(length: int):

@@ -13,7 +13,7 @@ from tgbot.misc.states import PassQe
 from tgbot.misc.throttling_function import rate_limit
 from tgbot.services.database import db_commands
 from tgbot.services.database.db_commands import increase_qe_started_by
-from tgbot.services.dependences import WELCOME_MESSAGE
+from tgbot.misc.dependences import WELCOME_MESSAGE
 from tgbot.services.service_functions import parse_answer_options, get_average_completion_time
 
 

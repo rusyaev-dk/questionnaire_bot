@@ -8,16 +8,23 @@ from tgbot.keyboards.inline.qe_inline_keyboards import parse_answer_options_kb, 
     answer_options_callback, answers_approve_callback, answers_approves
 from tgbot.misc.states import PassQe
 from tgbot.services.database import db_commands
-from tgbot.services.dependences import USER_ANSWER_ID_LENGTH
+from tgbot.misc.dependences import USER_ANSWER_ID_LENGTH, ANSWER_LENGTH
 from tgbot.services.service_functions import parse_answers_text, parse_answer_options, generate_random_id
 
 
 async def get_open_answer(message: types.Message, state: FSMContext):
-    data = await state.get_data()
-    qe_id = data.get("qe_id")
-    answer_id = generate_random_id(length=USER_ANSWER_ID_LENGTH)
-    await db_commands.create_user_answer(answer_id=answer_id, qe_id=qe_id, respondent_id=message.from_user.id,
-                                         answer_text=message.text)
+    while True:
+        if len(message.text) > ANSWER_LENGTH:
+            await message.answer(f"❗ <b>Длина</b> ответа должна составлять не более <b>{ANSWER_LENGTH}</b> символов. "
+                                 "Введите ответ снова:")
+            return
+        else:
+            data = await state.get_data()
+            qe_id = data.get("qe_id")
+            answer_id = generate_random_id(length=USER_ANSWER_ID_LENGTH)
+            await db_commands.create_user_answer(answer_id=answer_id, qe_id=qe_id, respondent_id=message.from_user.id,
+                                                 answer_text=message.text)
+            break
 
     counter = data.get("counter")
     answers_quantity = data.get("answers_quantity")

@@ -26,7 +26,7 @@ async def get_user_created_questionnaires(message: types.Message, state: FSMCont
                              reply_markup=keyboard)
         await CreatedQeStatistics.SelectQE.set()
     else:
-        await message.answer("📭 У Вас нет созданных опросов.")
+        await message.answer("📂 У Вас нет созданных опросов.")
 
 
 @rate_limit(5)

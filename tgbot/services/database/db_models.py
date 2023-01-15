@@ -1,6 +1,7 @@
-from sqlalchemy import Column, String, sql, ARRAY, Integer, Float, BigInteger
+from sqlalchemy import Column, String, sql, Integer, Float, BigInteger
 
 from tgbot.services.database.db_gino import TimeBaseModel, BaseModel
+from tgbot.misc.dependences import TITLE_LENGTH, QUESTION_LENGTH, ANSWER_OPTION_LENGTH, ANSWER_LENGTH
 
 
 class User(TimeBaseModel):
@@ -23,7 +24,7 @@ class Questionnaire(TimeBaseModel):
     qe_id = Column(String(20), primary_key=True)
     creator_id = Column(BigInteger)
 
-    title = Column(String(100))
+    title = Column(String(TITLE_LENGTH))
     is_active = Column(String(10), default="true")
     started_by = Column(Integer, default=0)
     passed_by = Column(Integer, default=0)
@@ -39,7 +40,7 @@ class Question(BaseModel):
     qe_id = Column(String(20))
 
     question_type = Column(String(20))
-    question_text = Column(String(250))
+    question_text = Column(String(QUESTION_LENGTH))
 
     query: sql.Select
 
@@ -50,7 +51,7 @@ class AnswerOption(BaseModel):
     answer_option_id = Column(String(50), primary_key=True)
     question_id = Column(String(50))
 
-    answer_option_text = Column(String(100))
+    answer_option_text = Column(String(ANSWER_OPTION_LENGTH))
 
     query: sql.Select
 
@@ -62,7 +63,7 @@ class UserAnswer(BaseModel):
     qe_id = Column(String(20))
     respondent_id = Column(BigInteger)
 
-    answer_text = Column(String(2000))
+    answer_text = Column(String(ANSWER_LENGTH))
 
     query: sql.Select
 

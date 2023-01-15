@@ -1,7 +1,6 @@
 import asyncio
 import logging
 
-import aiogram.utils.exceptions
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.types import ReplyKeyboardRemove

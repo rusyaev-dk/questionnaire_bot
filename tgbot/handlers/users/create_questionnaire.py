@@ -6,15 +6,22 @@ from tgbot.keyboards.inline.qe_inline_keyboards import questionnaire_approve_kb,
     question_type_callback, question_types, qe_approve_callback, qe_approves
 from tgbot.misc.states import CreateQe
 from tgbot.services.database import db_commands
-from tgbot.services.dependences import MAX_QUESTIONS_QUANTITY, QE_ID_LENGTH, MAX_ANSWERS_QUANTITY, BOT_USERNAME, \
-    QUESTION_ID_LENGTH, ANSWER_OPTION_ID_LENGTH
+from tgbot.misc.dependences import MAX_QUESTIONS_QUANTITY, QE_ID_LENGTH, MAX_ANSWERS_QUANTITY, \
+    QUESTION_ID_LENGTH, ANSWER_OPTION_ID_LENGTH, TITLE_LENGTH, QUESTION_LENGTH, ANSWER_OPTION_LENGTH
 from tgbot.services.service_functions import generate_random_id, parse_questions_text, parse_share_link
 
 
 async def get_qe_title(message: types.Message, state: FSMContext):
-    await state.update_data(title=message.text)
-    await message.answer("🔸 Введите <b>количество</b> вопросов:")
-    await CreateQe.QuestionsQuantity.set()
+    while True:
+        if len(message.text) > TITLE_LENGTH:
+            await message.answer(f"❗ <b>Длина</b> названия должна составлять не более <b>{TITLE_LENGTH}</b> символов. "
+                                 "Введите название снова:")
+            return
+        else:
+            await state.update_data(title=message.text)
+            await message.answer("🔸 Введите <b>количество</b> вопросов:")
+            await CreateQe.QuestionsQuantity.set()
+            break
 
 
 async def get_questions_quantity(message: types.Message, state: FSMContext):
@@ -26,7 +33,8 @@ async def get_questions_quantity(message: types.Message, state: FSMContext):
                 await message.answer("❗️ Введите корректное значение.")
                 return
             elif questions_quantity > MAX_QUESTIONS_QUANTITY:
-                await message.answer("❗️ Опрос может состоять не более чем из 15 вопросов. Введите значение снова:")
+                await message.answer(f"❗️ Опрос может состоять не более чем из {MAX_QUESTIONS_QUANTITY} вопросов. "
+                                     f"Введите значение снова:")
                 return
             else:
                 data = await state.get_data()
@@ -69,16 +77,23 @@ async def select_question_type(call: types.CallbackQuery, callback_data: dict, s
 
 
 async def get_question_text(message: types.Message, state: FSMContext):
-    data = await state.get_data()
-    qe_id = data.get("qe_id")
-    counter = data.get("counter")
-    questions_quantity = data.get("questions_quantity")
-    question_type = data.get("question_type")
+    while True:
+        if len(message.text) > QUESTION_LENGTH:
+            await message.answer(f"❗ <b>Длина</b> вопроса должна составлять не более <b>{QUESTION_LENGTH}</b> символов. "
+                                 "Введите вопрос снова:")
+            return
+        else:
+            data = await state.get_data()
+            qe_id = data.get("qe_id")
+            counter = data.get("counter")
+            questions_quantity = data.get("questions_quantity")
+            question_type = data.get("question_type")
 
-    question_id = generate_random_id(length=QUESTION_ID_LENGTH)
-    await state.update_data(question_id=question_id)
-    await db_commands.create_question(question_id=question_id, qe_id=qe_id, question_type=question_type,
-                                      question_text=message.text)
+            question_id = generate_random_id(length=QUESTION_ID_LENGTH)
+            await state.update_data(question_id=question_id)
+            await db_commands.create_question(question_id=question_id, qe_id=qe_id, question_type=question_type,
+                                              question_text=message.text)
+            break
 
     if question_type == "open":
         counter += 1
@@ -124,32 +139,38 @@ async def get_closed_answer_text(message: types.Message, state: FSMContext):
     answers_quantity = data.get("answers_quantity")
     question_id = data.get("question_id")
     while True:
-        answer_option_id = generate_random_id(length=ANSWER_OPTION_ID_LENGTH)
-        await db_commands.create_answer_option(answer_option_id=answer_option_id, question_id=question_id,
-                                               answer_option_text=message.text)
-        closed_counter += 1
-
-        if closed_counter < answers_quantity:
-            await message.answer(f"📌 Введите {closed_counter + 1}-й вариант ответа:")
-            await state.update_data(closed_counter=closed_counter)
+        if len(message.text) > ANSWER_OPTION_LENGTH:
+            await message.answer(
+                f"❗ <b>Длина</b> варианта ответа должна составлять не более <b>{ANSWER_OPTION_LENGTH}</b> символов. "
+                "Введите вариант ответа снова:")
             return
-        else:
-            qe_id = data.get("qe_id")
-            counter = data.get("counter")
-            questions_quantity = data.get("questions_quantity")
+        elif 0 < len(message.text) < ANSWER_OPTION_LENGTH:
+            answer_option_id = generate_random_id(length=ANSWER_OPTION_ID_LENGTH)
+            await db_commands.create_answer_option(answer_option_id=answer_option_id, question_id=question_id,
+                                                   answer_option_text=message.text)
+            closed_counter += 1
 
-            counter += 1
-            if counter < questions_quantity:
-                await message.answer(f"✅ Закрытый вопрос добавлен. Укажите тип {counter + 1}-го вопроса:",
-                                     reply_markup=question_type_kb)
-                await state.update_data(counter=counter)
-                await CreateQe.QuestionType.set()
+            if closed_counter < answers_quantity:
+                await message.answer(f"📌 Введите {closed_counter + 1}-й вариант ответа:")
+                await state.update_data(closed_counter=closed_counter)
+                return
             else:
-                questionnaire = await db_commands.select_questionnaire(qe_id=qe_id)
-                text = await parse_questions_text(questionnaire=questionnaire)
-                await message.answer(text, reply_markup=questionnaire_approve_kb)
-                await CreateQe.CreateApprove.set()
-            break
+                qe_id = data.get("qe_id")
+                counter = data.get("counter")
+                questions_quantity = data.get("questions_quantity")
+                counter += 1
+
+                if counter < questions_quantity:
+                    await message.answer(f"✅ Закрытый вопрос добавлен. Укажите тип {counter + 1}-го вопроса:",
+                                         reply_markup=question_type_kb)
+                    await state.update_data(counter=counter)
+                    await CreateQe.QuestionType.set()
+                else:
+                    questionnaire = await db_commands.select_questionnaire(qe_id=qe_id)
+                    text = await parse_questions_text(questionnaire=questionnaire)
+                    await message.answer(text, reply_markup=questionnaire_approve_kb)
+                    await CreateQe.CreateApprove.set()
+                break
 
 
 async def questionnaire_approve(call: types.CallbackQuery, callback_data: dict, state: FSMContext):

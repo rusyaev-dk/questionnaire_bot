@@ -2,7 +2,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.callback_data import CallbackData
 
 from tgbot.services.database import db_commands
-from tgbot.services.dependences import ANSWER_LETTERS
+from tgbot.misc.dependences import ANSWER_LETTERS
 from tgbot.services.service_functions import parse_share_link
 
 question_type_callback = CallbackData("action", "question_type")

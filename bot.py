@@ -19,10 +19,9 @@ from tgbot.handlers.users.main_menu import register_main_menu
 from tgbot.handlers.users.additional_commands import register_service_commands
 from tgbot.middlewares.db import DbMiddleware
 from tgbot.middlewares.throttling import ThrottlingMiddleware
-from tgbot.services import set_bot_commands
+from tgbot.services import set_bot_commands, notify_admins
 from tgbot.services.database import db_gino
 from tgbot.services.database.db_gino import db
-from tgbot.services.notifications import notify_admins
 
 logger = logging.getLogger(__name__)
 

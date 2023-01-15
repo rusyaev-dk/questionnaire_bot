@@ -5,7 +5,7 @@ from tgbot.keyboards.default.qe_text_keyboards import main_menu_kb
 from tgbot.misc.throttling_function import rate_limit
 
 from tgbot.services.database import db_commands
-from tgbot.services.dependences import ADMIN_USERNAME
+from tgbot.misc.dependences import ADMIN_USERNAME
 
 
 @rate_limit(5)
