@@ -7,9 +7,10 @@ from tgbot.keyboards.default.qe_text_keyboards import main_menu_kb
 from tgbot.keyboards.inline.qe_inline_keyboards import created_qe_statistics_kb, qe_list_callback, \
     statistics_kb_callback, statistics_acts, file_type_kb, file_type_callback, f_types, delete_qe_approve_kb, \
     delete_qe_approve_callback, delete_qe_approves, qe_list_kb
-from tgbot.misc.states import CreatedQeStatistics
-from tgbot.misc.Excel import create_xlsx_file
+from tgbot.misc.Excel.create_xlsx import create_xlsx_file
 from tgbot.misc.PDF.create_pdf import create_pdf_file
+from tgbot.misc.states import CreatedQeStatistics
+
 from tgbot.services.database import db_commands
 from tgbot.misc.dependences import PASSED_BY_MINIMUM
 from tgbot.services.service_functions import created_qe_info, statistics_qe_text

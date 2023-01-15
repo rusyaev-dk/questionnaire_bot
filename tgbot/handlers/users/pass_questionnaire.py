@@ -13,47 +13,44 @@ from tgbot.services.service_functions import parse_answers_text, parse_answer_op
 
 
 async def get_open_answer(message: types.Message, state: FSMContext):
-    while True:
-        if len(message.text) > ANSWER_LENGTH:
-            await message.answer(f"❗ <b>Длина</b> ответа должна составлять не более <b>{ANSWER_LENGTH}</b> символов. "
-                                 "Введите ответ снова:")
-            return
-        else:
-            data = await state.get_data()
-            qe_id = data.get("qe_id")
-            answer_id = generate_random_id(length=USER_ANSWER_ID_LENGTH)
-            await db_commands.create_user_answer(answer_id=answer_id, qe_id=qe_id, respondent_id=message.from_user.id,
-                                                 answer_text=message.text)
-            break
-
-    counter = data.get("counter")
-    answers_quantity = data.get("answers_quantity")
-    counter += 1
-
-    if counter < answers_quantity:
-        await state.update_data(counter=counter)
-        questions = await db_commands.select_questions(qe_id=qe_id)
-        question = questions[counter]
-
-        if question.question_type == "open":
-            await message.answer(f"❓ {counter + 1}-й вопрос: {question.question_text}")
-            await PassQe.OpenAnswer.set()
-        else:
-            answer_options = await db_commands.select_answer_options(question_id=question.question_id)
-            text = await parse_answer_options(answer_options=answer_options)
-            await message.answer(f"❓ {counter + 1}-й вопрос: {question.question_text}\n\n{text}",
-                                 reply_markup=parse_answer_options_kb(options_quantity=len(answer_options)))
-            await PassQe.ClosedAnswer.set()
+    if len(message.text) > ANSWER_LENGTH:
+        await message.answer(f"❗ <b>Длина</b> ответа должна составлять не более <b>{ANSWER_LENGTH}</b> символов. "
+                             "Введите ответ снова:")
+        return
     else:
-        start_time = data.get("start_time")
-        completion_time = time.time() - start_time
-        await state.update_data(completion_time=completion_time)
+        data = await state.get_data()
+        qe_id = data.get("qe_id")
+        answer_id = generate_random_id(length=USER_ANSWER_ID_LENGTH)
+        await db_commands.create_user_answer(answer_id=answer_id, qe_id=qe_id, respondent_id=message.from_user.id,
+                                             answer_text=message.text)
+        counter = data.get("counter")
+        answers_quantity = data.get("answers_quantity")
 
-        text = "❇️ Опрос пройден.\n\n"
-        answers = await db_commands.select_user_answers(respondent_id=message.from_user.id, qe_id=qe_id)
-        text += await parse_answers_text(answers=answers, answers_quantity=answers_quantity)
-        await message.answer(text, reply_markup=answers_approve_kb)
-        await PassQe.PassEndApprove.set()
+        counter += 1
+        if counter < answers_quantity:
+            await state.update_data(counter=counter)
+            questions = await db_commands.select_questions(qe_id=qe_id)
+            question = questions[counter]
+
+            if question.question_type == "open":
+                await message.answer(f"❓ {counter + 1}-й вопрос: {question.question_text}")
+                await PassQe.OpenAnswer.set()
+            else:
+                answer_options = await db_commands.select_answer_options(question_id=question.question_id)
+                text = await parse_answer_options(answer_options=answer_options)
+                await message.answer(f"❓ {counter + 1}-й вопрос: {question.question_text}\n\n{text}",
+                                     reply_markup=parse_answer_options_kb(options_quantity=len(answer_options)))
+                await PassQe.ClosedAnswer.set()
+        else:
+            start_time = data.get("start_time")
+            completion_time = time.time() - start_time
+            await state.update_data(completion_time=completion_time)
+
+            text = "❇️ Опрос пройден.\n\n"
+            answers = await db_commands.select_user_answers(respondent_id=message.from_user.id, qe_id=qe_id)
+            text += await parse_answers_text(answers=answers, answers_quantity=answers_quantity)
+            await message.answer(text, reply_markup=answers_approve_kb)
+            await PassQe.PassEndApprove.set()
 
 
 async def get_closed_answer(call: types.CallbackQuery, callback_data: dict, state: FSMContext):
@@ -67,14 +64,13 @@ async def get_closed_answer(call: types.CallbackQuery, callback_data: dict, stat
         await call.message.answer("Главное меню:", reply_markup=main_menu_kb)
         await state.finish()
     else:
-
         answer_id = generate_random_id(length=USER_ANSWER_ID_LENGTH)
         await db_commands.create_user_answer(answer_id=answer_id, qe_id=qe_id, respondent_id=call.from_user.id,
                                              answer_text=answer)
         counter = data.get("counter")
         answers_quantity = data.get("answers_quantity")
-        counter += 1
 
+        counter += 1
         if counter < answers_quantity:
             await state.update_data(counter=counter)
             questions = await db_commands.select_questions(qe_id=qe_id)

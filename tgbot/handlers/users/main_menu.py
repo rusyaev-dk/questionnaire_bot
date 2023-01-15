@@ -15,7 +15,7 @@ async def create_questionnaire(message: types.Message):
 
 
 @rate_limit(5)
-async def get_user_created_questionnaires(message: types.Message, state: FSMContext):
+async def user_created_questionnaires(message: types.Message, state: FSMContext):
     created_qes = await db_commands.select_user_created_qes(creator_id=message.from_user.id)
 
     if len(created_qes) > 0:
@@ -30,7 +30,7 @@ async def get_user_created_questionnaires(message: types.Message, state: FSMCont
 
 
 @rate_limit(5)
-async def get_user_passed_questionnaires(message: types.Message, state: FSMContext):
+async def user_passed_questionnaires(message: types.Message, state: FSMContext):
     passed_qes = await db_commands.select_user_passed_qes(respondent_id=message.from_user.id)
     if len(passed_qes) > 0:
         await message.answer("Тут будет гайд.", reply_markup=ReplyKeyboardRemove())
@@ -50,7 +50,7 @@ async def get_user_passed_questionnaires(message: types.Message, state: FSMConte
 
 
 @rate_limit(5)
-async def get_user_statistics(message: types.Message):
+async def user_statistics(message: types.Message):
     user = await db_commands.select_user(id=message.from_user.id)
     created_qes = await db_commands.select_user_created_qes(creator_id=message.from_user.id)
     total_respondents = 0
@@ -67,13 +67,13 @@ async def get_user_statistics(message: types.Message):
 
 
 @rate_limit(5)
-async def get_developer_info(message: types.Message):
+async def developer_info(message: types.Message):
     await message.answer("Скоро тут появится информация о разработчике...")
 
 
 def register_main_menu(dp: Dispatcher):
     dp.register_message_handler(create_questionnaire, text="📝 Создать опрос", state="*")
-    dp.register_message_handler(get_user_created_questionnaires, text="🗂 Созданные опросы", state="*")
-    dp.register_message_handler(get_user_passed_questionnaires, text="🗃 Пройденные опросы", state="*")
-    dp.register_message_handler(get_user_statistics, text="📊 Моя статистика", state="*")
-    dp.register_message_handler(get_developer_info, text="👨‍💻 Разработчик", state="*")
+    dp.register_message_handler(user_created_questionnaires, text="🗂 Созданные опросы", state="*")
+    dp.register_message_handler(user_passed_questionnaires, text="🗃 Пройденные опросы", state="*")
+    dp.register_message_handler(user_statistics, text="📊 Моя статистика", state="*")
+    dp.register_message_handler(developer_info, text="👨‍💻 Разработчик", state="*")

@@ -9,10 +9,12 @@ from tgbot.keyboards.default.qe_text_keyboards import main_menu_kb
 from tgbot.keyboards.inline.additional_inline_keyboards import notify_users_approve_callback, notify_users_approves, \
     notify_users_approve_kb
 from tgbot.misc.states import NotifyUsers
+from tgbot.misc.throttling_function import rate_limit
 from tgbot.services.broadcast_functions import send_text, send_photo, send_document
 from tgbot.services.database import db_commands
 
 
+@rate_limit(5)
 async def notify_users(message: types.Message):
     await message.answer("📦 Отправьте текст/фото/файл для оповещения пользователей:", reply_markup=ReplyKeyboardRemove())
     await NotifyUsers.NotifyMedia.set()
