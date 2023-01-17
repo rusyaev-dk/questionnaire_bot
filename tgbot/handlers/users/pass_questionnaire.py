@@ -4,7 +4,7 @@ from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 
 from tgbot.keyboards.default.qe_text_keyboards import main_menu_kb
-from tgbot.keyboards.inline.qe_inline_keyboards import parse_answer_options_kb, answers_approve_kb, \
+from tgbot.keyboards.inline.qe_inline_kbs import parse_answer_options_kb, answers_approve_kb, \
     answer_options_callback, answers_approve_callback, answers_approves
 from tgbot.misc.states import PassQe
 from tgbot.services.database import db_commands
@@ -17,6 +17,11 @@ async def get_open_answer(message: types.Message, state: FSMContext):
         await message.answer(f"❗ <b>Длина</b> ответа должна составлять не более <b>{ANSWER_LENGTH}</b> символов. "
                              "Введите ответ снова:")
         return
+
+    elif ">" in message.text or "<" in message.text:
+        await message.answer("❗️ Пожалуйста, не используйте символы \"<\" и \">\".", parse_mode='Markdown')
+        return
+
     else:
         data = await state.get_data()
         qe_id = data.get("qe_id")

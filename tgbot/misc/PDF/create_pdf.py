@@ -73,14 +73,21 @@ async def create_pdf_file(questionnaire: Questionnaire):
     table.even_odd_row_colors(X11Color("LightGray"), X11Color("White"))
 
     counter = 1
+
     for passed_qe in passed_qes:
         answers = await db_commands.select_user_answers(respondent_id=passed_qe.respondent_id,
                                                         qe_id=questionnaire.qe_id)
-        for i in range(questions_quantity):
-            if i % questions_quantity == 0:
-                table.add(Paragraph(text=f"{counter}", font=custom_font))
-            table.add(Paragraph(text=f"{answers[i].answer_text}", font=custom_font))
-        counter += 1
+        try:
+            for i in range(questions_quantity):
+                if i % questions_quantity == 0:
+                    table.add(Paragraph(text=f"{counter}", font=custom_font))
+                table.add(Paragraph(text=f"{answers[i].answer_text}", font=custom_font))
+            counter += 1
+        except AssertionError:
+            doc.add_page(page)
+            layout: PageLayout = SingleColumnLayout(page)
+            table = FlexibleColumnWidthTable(number_of_columns=questions_quantity + 1, number_of_rows=len(passed_qes) + 1)
+            continue
 
     table.set_padding_on_all_cells(Decimal(5), Decimal(5), Decimal(5), Decimal(5))
 

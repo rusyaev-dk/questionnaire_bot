@@ -6,7 +6,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.types import ReplyKeyboardRemove
 
 from tgbot.keyboards.default.qe_text_keyboards import main_menu_kb
-from tgbot.keyboards.inline.additional_inline_keyboards import notify_users_approve_callback, notify_users_approves, \
+from tgbot.keyboards.inline.additional_inline_kbs import notify_users_approve_callback, notify_users_approves, \
     notify_users_approve_kb
 from tgbot.misc.states import NotifyUsers
 from tgbot.misc.throttling_function import rate_limit

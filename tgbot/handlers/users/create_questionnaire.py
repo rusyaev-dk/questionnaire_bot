@@ -2,7 +2,7 @@ from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 
 from tgbot.keyboards.default.qe_text_keyboards import main_menu_kb
-from tgbot.keyboards.inline.qe_inline_keyboards import questionnaire_approve_kb, question_type_kb, share_link_kb, \
+from tgbot.keyboards.inline.qe_inline_kbs import questionnaire_approve_kb, question_type_kb, share_link_kb, \
     question_type_callback, question_types, qe_approve_callback, qe_approves
 from tgbot.misc.states import CreateQe
 from tgbot.services.database import db_commands
@@ -16,6 +16,11 @@ async def get_qe_title(message: types.Message, state: FSMContext):
         await message.answer(f"❗ <b>Длина</b> названия должна составлять не более <b>{TITLE_LENGTH}</b> символов. "
                              "Введите название снова:")
         return
+
+    elif ">" in message.text or "<" in message.text:
+        await message.answer("❗️ Пожалуйста, не используйте символы \"<\" и \">\".", parse_mode='Markdown')
+        return
+
     else:
         await state.update_data(title=message.text)
         await message.answer("🔸 Введите <b>количество</b> вопросов:")
@@ -28,10 +33,12 @@ async def get_questions_quantity(message: types.Message, state: FSMContext):
         if questions_quantity <= 0:
             await message.answer("❗️ Введите корректное значение.")
             return
+
         elif questions_quantity > MAX_QUESTIONS_QUANTITY:
             await message.answer(f"❗️ Опрос может состоять не более чем из {MAX_QUESTIONS_QUANTITY} вопросов. "
                                  f"Введите количество снова:")
             return
+
         else:
             data = await state.get_data()
             title = data.get("title")
@@ -78,6 +85,11 @@ async def get_question_text(message: types.Message, state: FSMContext):
         await message.answer(f"❗ <b>Длина</b> вопроса должна составлять не более <b>{QUESTION_LENGTH}</b> символов. "
                              "Введите вопрос снова:")
         return
+
+    elif ">" in message.text or "<" in message.text:
+        await message.answer("❗️ Пожалуйста, не используйте символы \"<\" и \">\".", parse_mode='Markdown')
+        return
+
     else:
         data = await state.get_data()
         qe_id = data.get("qe_id")
@@ -111,12 +123,13 @@ async def get_closed_answers_quantity(message: types.Message, state: FSMContext)
         if answers_quantity <= 0:
             await message.answer("❗️ Введите корректное значение.")
             return
+
         elif answers_quantity > MAX_ANSWERS_QUANTITY:
             await message.answer("❗️ Вариантов ответа может быть не более 5. Введите количество снова:")
             return
+
         else:
             closed_counter = 0
-
             await state.update_data(answers_quantity=answers_quantity, closed_counter=closed_counter)
             await message.answer("📌 Введите 1-й вариант ответа:")
             await CreateQe.AnswerOptionText.set()
@@ -136,7 +149,12 @@ async def get_closed_answer_text(message: types.Message, state: FSMContext):
         await message.answer(f"❗ <b>Длина</b> варианта ответа должна составлять не более <b>{ANSWER_OPTION_LENGTH}</b> "
                              f"символов. Введите вариант ответа снова:")
         return
-    elif 0 < len(message.text) < ANSWER_OPTION_LENGTH:
+
+    elif ">" in message.text or "<" in message.text:
+        await message.answer("❗️ Пожалуйста, не используйте символы \"<\" и \">\".", parse_mode='Markdown')
+        return
+
+    else:
         answer_option_id = generate_random_id(length=ANSWER_OPTION_ID_LENGTH)
         await db_commands.create_answer_option(answer_option_id=answer_option_id, question_id=question_id,
                                                answer_option_text=message.text)

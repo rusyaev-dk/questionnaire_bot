@@ -4,7 +4,7 @@ from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 
 from tgbot.keyboards.default.qe_text_keyboards import main_menu_kb
-from tgbot.keyboards.inline.qe_inline_keyboards import created_qe_statistics_kb, qe_list_callback, \
+from tgbot.keyboards.inline.qe_inline_kbs import created_qe_statistics_kb, qe_list_callback, \
     statistics_kb_callback, statistics_acts, file_type_kb, file_type_callback, f_types, delete_qe_approve_kb, \
     delete_qe_approve_callback, delete_qe_approves, qe_list_kb
 from tgbot.misc.Excel.create_xlsx import create_xlsx_file
@@ -74,8 +74,8 @@ async def created_qe_management(call: types.CallbackQuery, callback_data: dict, 
                                          reply_markup=keyboard)
 
     elif act == "delete":
-        await call.answer("⚠️ После удаления опроса пропадёт вся статистика и ответы. Также восстановить опрос уже "
-                          "не получится", show_alert=True)
+        await call.answer("⚠️ После удаления опроса пропадёт вся статистика и ответы. Восстановить опрос уже "
+                          "не получится.", show_alert=True)
         await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
                                          text=f"Подтвердите удаление опроса: <b>{questionnaire.title}</b>",
                                          reply_markup=delete_qe_approve_kb)
