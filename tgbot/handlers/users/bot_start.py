@@ -72,25 +72,27 @@ async def pass_qe_approve(call: types.CallbackQuery, callback_data: dict, state:
         questions = await db_commands.select_questions(qe_id=qe_id)
         question = questions[0]
 
-        await call.bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
         if question.question_type == "open":
-            await call.message.answer(f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n"
-                                      f"❓ 1-й вопрос: {question.question_text}")
+            await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
+                                             text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n"
+                                                  f"❓ 1-й вопрос: {question.question_text}")
             await PassQe.OpenAnswer.set()
         else:
             answer_options = await db_commands.select_answer_options(question_id=question.question_id)
             answer_options_text = await parse_answer_options(answer_options=answer_options)
             keyboard = parse_answer_options_kb(options_quantity=len(answer_options))
-            await call.message.answer(f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n"
-                                      f"❓ 1-й вопрос: {question.question_text}\n\n{answer_options_text}",
-                                      reply_markup=keyboard)
+            await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
+                                             text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n"
+                                                  f"❓ 1-й вопрос: {question.question_text}\n\n{answer_options_text}",
+                                             reply_markup=keyboard)
+            await state.update_data(question_id=question.question_id)
             await PassQe.ClosedAnswer.set()
         start_time = time.time()
         await state.update_data(qe_id=questionnaire.qe_id, counter=0, start_time=start_time,
                                 answers_quantity=questionnaire.questions_quantity)
     elif approve == "cancel":
         await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                         text="❌ Прохождение опроса отменено")
+                                         text="❌ Прохождение опроса отменено.")
         await call.message.answer("Главное меню:", reply_markup=main_menu_kb)
         await state.finish()
 
@@ -99,7 +101,7 @@ async def replay_qe_approve(call: types.CallbackQuery, callback_data: dict, stat
     approve = callback_data.get("approve")
     if approve == "cancel":
         await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                         text="❌ Прохождение опроса отменено")
+                                         text="❌ Прохождение опроса отменено.")
         await call.message.answer("Главное меню:", reply_markup=main_menu_kb)
         await state.finish()
     else:
@@ -118,15 +120,19 @@ async def replay_qe_approve(call: types.CallbackQuery, callback_data: dict, stat
                 question = questions[0]
 
                 if question.question_type == "open":
-                    await call.message.answer(f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n"
-                                              f"❓ 1-й вопрос: {question.question_text}")
+                    await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
+                                                     text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n"
+                                                          f"❓ 1-й вопрос: {question.question_text}")
                     await PassQe.OpenAnswer.set()
                 else:
                     answer_options = await db_commands.select_answer_options(question_id=question.question_id)
                     text = await parse_answer_options(answer_options=answer_options)
-                    await call.message.answer(f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n"
-                                              f"❓ 1-й вопрос: {question.question_text}\n\n{text}",
-                                              reply_markup=parse_answer_options_kb(options_quantity=len(answer_options)))
+                    keyboard = parse_answer_options_kb(options_quantity=len(answer_options))
+                    await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
+                                                     text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n"
+                                                          f"❓ 1-й вопрос: {question.question_text}\n\n{text}",
+                                                     reply_markup=keyboard)
+                    await state.update_data(question_id=question.question_id)
                     await PassQe.ClosedAnswer.set()
 
                 start_time = time.time()

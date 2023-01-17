@@ -15,6 +15,12 @@ async def get_main_menu(message: types.Message, state: FSMContext):
 
 
 @rate_limit(5)
+async def cancel_action(message: types.Message, state: FSMContext):
+    await message.answer("↩️ Текущее действие отменено. Главное меню:", reply_markup=main_menu_kb)
+    await state.finish()
+
+
+@rate_limit(5)
 async def restart_bot(message: types.Message, state: FSMContext):
     await message.answer("♻️ Бот перезапущен. Главное меню:", reply_markup=main_menu_kb)
     await state.finish()
@@ -37,6 +43,7 @@ async def get_bot_statistics(message: types.Message):
 
 def register_service_commands(dp: Dispatcher):
     dp.register_message_handler(get_main_menu, commands=["main_menu"], state="*")
+    dp.register_message_handler(cancel_action, commands=["cancel"], state="*")
     dp.register_message_handler(restart_bot, commands=["restart"], state="*")
     dp.register_message_handler(get_help, commands=["help"], state="*")
 

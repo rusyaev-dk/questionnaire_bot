@@ -60,6 +60,7 @@ async def notify_approve(call: types.CallbackQuery, callback_data: dict, state: 
                         counter += 1
                     await asyncio.sleep(0.1)
             finally:
+                await call.message.answer(f"📬 Успешно отправлено сообщений: {counter}")
                 logging.info(f"Successfully sent messages: {counter}")
 
         elif msg_type == "photo":
@@ -72,6 +73,7 @@ async def notify_approve(call: types.CallbackQuery, callback_data: dict, state: 
                         counter += 1
                     await asyncio.sleep(0.1)
             finally:
+                await call.message.answer(f"📬 Успешно отправлено сообщений: {counter}")
                 logging.info(f"Successfully sent messages: {counter}")
 
         elif msg_type == "document":
@@ -84,6 +86,7 @@ async def notify_approve(call: types.CallbackQuery, callback_data: dict, state: 
                         counter += 1
                     await asyncio.sleep(0.1)
             finally:
+                await call.message.answer(f"📬 Успешно отправлено сообщений: {counter}")
                 logging.info(f"Successfully sent messages: {counter}")
 
     elif approve == "cancel":

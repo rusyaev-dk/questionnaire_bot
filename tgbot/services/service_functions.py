@@ -27,7 +27,13 @@ async def parse_questions_text(questionnaire: Questionnaire):
     text = (f"🔍 Ваш опрос:\n\n"
             f"🔹 Название: <b>{questionnaire.title}</b>\n\n")
     for i in range(questionnaire.questions_quantity):
-        text += f"• {i + 1}-й вопрос : <b>{questions[i].question_text}</b>\n"
+        text += f"• {i + 1}-й вопрос: <b>{questions[i].question_text}</b>\n"
+        if questions[i].question_type == "closed":
+            answer_options = await db_commands.select_answer_options(question_id=questions[i].question_id)
+            j = 0
+            for answer_option in answer_options:
+                text += f"<b>{ANSWER_LETTERS[j]}:</b> {answer_option.answer_option_text}\n"
+                j += 1
     text += "\nСоздать опрос?"
     return text
 
@@ -98,13 +104,13 @@ async def statistics_qe_text(questionnaire: Questionnaire):
     if questionnaire.passed_by == 0:
         pass_percent = 0
     else:
-        pass_percent = questionnaire.started_by / questionnaire.passed_by * 100
+        pass_percent = questionnaire.passed_by / questionnaire.started_by * 100
 
     average_ct = await get_average_completion_time(qe_id=questionnaire.qe_id)
     statistics_text = (f"📊 Статистика опроса:\n"
                        f"• Начали проходить: <b>{questionnaire.started_by}</b> чел.\n"
                        f"• Прошли: <b>{questionnaire.passed_by}</b> чел.\n"
-                       f"• Процент прохождения: <b>{pass_percent}%</b>\n"
+                       f"• Процент прохождения: <b>{pass_percent:.1f}%</b>\n"
                        f"• Среднее время прохождения: <b>{average_ct[0]:.1f}</b> {average_ct[1]}\n"
                        f"• Дата создания: <b>{questionnaire.created_at}</b>")
     return statistics_text
@@ -121,26 +127,13 @@ async def passed_qe_info(respondent_id: int, questionnaire: Questionnaire, markd
     if markdown:
         text = f"🔹 Название: **{questionnaire.title}**\n\n"
         for i in range(questionnaire.questions_quantity):
-            text += f"• {i + 1}-й вопрос: **{questions[i].question_text}**\n"
-            if questions[i].question_type == "closed":
-                answer_options = await db_commands.select_answer_options(question_id=questions[i].question_id)
-                j = 0
-                for answer_option in answer_options:
-                    text += f"**{ANSWER_LETTERS[j]}:** {answer_option.answer_option_text}\n"
-                    j += 1
-            text += f"Ответ: **{answers[i].answer_text}**\n\n"
+            text += (f"• {i + 1}-й вопрос: **{questions[i].question_text}**\n"
+                     f"Ответ: **{answers[i].answer_text}**\n\n")
         text += f"• Дата прохождения: **{questionnaire.created_at}**"
     else:
         text = f"🔹 Название: <b>{questionnaire.title}</b>\n\n"
         for i in range(questionnaire.questions_quantity):
-            text += f"• {i + 1}-й вопрос: <b>{questions[i].question_text}</b>\n"
-            if questions[i].question_type == "closed":
-                answer_options = await db_commands.select_answer_options(question_id=questions[i].question_id)
-                j = 0
-                for answer_option in answer_options:
-                    text += f"<b>{ANSWER_LETTERS[j]}:</b> {answer_option.answer_option_text}\n"
-                    j += 1
-            text += f"Ответ: <b>{answers[i].answer_text}</b>\n\n"
+            text += (f"• {i + 1}-й вопрос: <b>{questions[i].question_text}</b>\n"
+                     f"Ответ: <b>{answers[i].answer_text}</b>\n\n")
         text += f"• Дата прохождения: <b>{questionnaire.created_at}</b>"
-
     return text

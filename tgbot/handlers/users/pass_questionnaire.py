@@ -45,6 +45,7 @@ async def get_open_answer(message: types.Message, state: FSMContext):
                 text = await parse_answer_options(answer_options=answer_options)
                 await message.answer(f"❓ {counter + 1}-й вопрос: {question.question_text}\n\n{text}",
                                      reply_markup=parse_answer_options_kb(options_quantity=len(answer_options)))
+                await state.update_data(question_id=question.question_id)
                 await PassQe.ClosedAnswer.set()
         else:
             start_time = data.get("start_time")
@@ -70,8 +71,13 @@ async def get_closed_answer(call: types.CallbackQuery, callback_data: dict, stat
         await state.finish()
     else:
         answer_id = generate_random_id(length=USER_ANSWER_ID_LENGTH)
+        question_id = data.get("question_id")
+        answer_options = await db_commands.select_answer_options(question_id=question_id)
+        position = int(answer[1])
+
+        answer_text = answer_options[position].answer_option_text
         await db_commands.create_user_answer(answer_id=answer_id, qe_id=qe_id, respondent_id=call.from_user.id,
-                                             answer_text=answer)
+                                             answer_text=answer_text)
         counter = data.get("counter")
         answers_quantity = data.get("answers_quantity")
 
@@ -87,18 +93,21 @@ async def get_closed_answer(call: types.CallbackQuery, callback_data: dict, stat
             else:
                 answer_options = await db_commands.select_answer_options(question_id=question.question_id)
                 text = await parse_answer_options(answer_options=answer_options)
-                await call.message.answer(f"❓ {counter + 1}-й вопрос: {question.question_text}\n\n{text}",
-                                          reply_markup=parse_answer_options_kb(options_quantity=len(answer_options)))
+                keyboard = parse_answer_options_kb(options_quantity=len(answer_options))
+                await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
+                                                 text=f"❓ {counter + 1}-й вопрос: {question.question_text}\n\n{text}",
+                                                 reply_markup=keyboard)
+                await state.update_data(question_id=question.question_id)
                 await PassQe.ClosedAnswer.set()
         else:
             start_time = data.get("start_time")
             completion_time = time.time() - start_time
             await state.update_data(completion_time=completion_time)
-
             text = "❇️ Опрос пройден.\n\n"
             answers = await db_commands.select_user_answers(respondent_id=call.from_user.id, qe_id=qe_id)
             text += await parse_answers_text(answers=answers, answers_quantity=answers_quantity)
-            await call.message.answer(text, reply_markup=answers_approve_kb)
+            await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
+                                             text=text, reply_markup=answers_approve_kb)
             await PassQe.PassEndApprove.set()
 
 
@@ -111,14 +120,15 @@ async def answers_approve(call: types.CallbackQuery, callback_data: dict, state:
         await db_commands.add_passed_qe(respondent_id=call.from_user.id, qe_id=qe_id, completion_time=completion_time)
         await db_commands.increase_qe_passed_by(qe_id=qe_id)
         await db_commands.increase_user_passed_qe_quantity(respondent_id=call.from_user.id)
-        await call.bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
-        await call.message.answer("📮 Ваши ответы отправлены автору опроса.",
-                                  reply_markup=main_menu_kb)
+        await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
+                                         text="📮 Ваши ответы отправлены автору опроса.")
+        await call.message.answer("Главное меню:", reply_markup=main_menu_kb)
         await state.finish()
     elif approve == "delete":
         await db_commands.delete_user_answers(respondent_id=call.from_user.id, qe_id=qe_id)
-        await call.message.answer("❌ Ваши ответы удалены.",
-                                  reply_markup=main_menu_kb)
+        await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
+                                         text="❌ Ваши ответы удалены.")
+        await call.message.answer("Главное меню:", reply_markup=main_menu_kb)
         await state.finish()
 
 

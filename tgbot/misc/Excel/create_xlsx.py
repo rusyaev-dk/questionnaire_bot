@@ -1,24 +1,24 @@
 import openpyxl
+from openpyxl.styles import Alignment
 
+from tgbot.misc.dependences import BOT_USERNAME
 from tgbot.services.database import db_commands
 from tgbot.services.database.db_models import Questionnaire
 
 
 async def create_xlsx_file(questionnaire: Questionnaire):
-    title = questionnaire.title
-    author = await db_commands.select_user(id=questionnaire.creator_id)
+    book = openpyxl.Workbook()
+    book.remove(book.active)
+    sheet_1 = book.create_sheet("Ответы")
+    sheet_2 = book.create_sheet("Статистика")
+    qe_title = questionnaire.title
 
     questions_fields = await db_commands.select_questions(qe_id=questionnaire.qe_id)
     questions = []
     for field in questions_fields:
         questions.append(field.question_text)
-    questions.insert(0, "№")
+    sheet_1.append(questions)
 
-    wb = openpyxl.Workbook()
-    table_list = wb.active
-    table_list.append(questions)
-
-    counter = 1
     passed_qes = await db_commands.select_passed_users(qe_id=questionnaire.qe_id)
     for passed_qe in passed_qes:
         answers_fields = await db_commands.select_user_answers(respondent_id=passed_qe.respondent_id,
@@ -26,19 +26,19 @@ async def create_xlsx_file(questionnaire: Questionnaire):
         answers = []
         for field in answers_fields:
             answers.append(field.answer_text)
-        answers.insert(0, counter)
-        table_list.append(answers)
-        counter += 1
+        sheet_1.append(answers)
 
+    letters = ["A", "B", "C", "D", "E", "F", "G", "H"]
+    i = 0
+    for letter in letters:
+        if i > questionnaire.questions_quantity - 1:
+            break
+        col = sheet_1.column_dimensions[f'{letter}']
+        col.width = len(questions[i]) + 10
+        col.alignment = Alignment(horizontal="center")
+        i += 1
 
-    table_list.append([f"Дата создания опроса: {questionnaire.created_at}"])
-    table_list.append([f"Автор опроса: {author.name}"])
+    path = rf'D:\PycharmProjects\{BOT_USERNAME}\tgbot\misc\Excel\xlsx_files\{qe_title}.xlsx'
+    book.save(path)
 
-    # columns = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']
-    # for i in range(quantity):
-    #     table_list.row_dimensions[i].height = 40
-    #     # table_list.column_dimensions[columns[i]] = 30
-
-    path = f'D:\PycharmProjects\MSU_Questionnaire_Bot\\tgbot\services\Excel\excel_files\{title}.xlsx'
-    wb.save(path)
     return path

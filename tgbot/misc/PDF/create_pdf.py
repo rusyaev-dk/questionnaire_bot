@@ -89,7 +89,7 @@ async def create_pdf_file(questionnaire: Questionnaire):
             table = FlexibleColumnWidthTable(number_of_columns=questions_quantity + 1, number_of_rows=len(passed_qes) + 1)
             continue
 
-    table.set_padding_on_all_cells(Decimal(5), Decimal(5), Decimal(5), Decimal(5))
+    table.set_padding_on_all_cells(Decimal(20), Decimal(20), Decimal(20), Decimal(20))
 
     layout.add(table)
 

@@ -103,17 +103,18 @@ async def choose_file_type(call: types.CallbackQuery, callback_data: dict, state
     stat_text = await statistics_qe_text(questionnaire=questionnaire)
 
     if f_type == "pdf":
-        await call.answer("⏳ Пожалуйста, подождите...", show_alert=True)
-        file_path = await create_pdf_file(questionnaire=questionnaire)
-        if file_path:
-            await call.bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
-            await call.message.answer_document(types.InputFile(rf"{file_path}"), caption="📌 Файл по Вашему опросу")
-            keyboard = await created_qe_statistics_kb(is_active=questionnaire.is_active, qe_id=qe_id)
-            await call.message.answer(text=stat_text, reply_markup=keyboard)
-            os.remove(file_path)
-            await CreatedQeStatistics.SelectStatsAct.set()
-        else:
-            await call.answer("Что-то пошло не так...", show_alert=False)
+        await call.answer("В разработке...")
+        # await call.answer("⏳ Пожалуйста, подождите...", show_alert=True)
+        # file_path = await create_pdf_file(questionnaire=questionnaire)
+        # if file_path:
+        #     await call.bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
+        #     await call.message.answer_document(types.InputFile(rf"{file_path}"), caption="📌 Файл по Вашему опросу")
+        #     keyboard = await created_qe_statistics_kb(is_active=questionnaire.is_active, qe_id=qe_id)
+        #     await call.message.answer(text=stat_text, reply_markup=keyboard)
+        #     os.remove(file_path)
+        #     await CreatedQeStatistics.SelectStatsAct.set()
+        # else:
+        #     await call.answer("Что-то пошло не так...", show_alert=False)
 
     elif f_type == "xlsx":
         await call.answer("⏳ Пожалуйста, подождите...", show_alert=True)
@@ -147,7 +148,6 @@ async def delete_qe_approve(call: types.CallbackQuery, callback_data: dict, stat
 
     if approve == "delete":
         await db_commands.delete_questionnaire(qe_id=qe_id)
-
         await call.answer("Опрос удалён.", show_alert=True)
 
         created_qes = await db_commands.select_user_created_qes(creator_id=call.from_user.id)

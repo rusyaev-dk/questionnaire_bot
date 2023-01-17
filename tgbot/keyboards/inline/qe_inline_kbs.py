@@ -54,16 +54,6 @@ answers_approve_kb = InlineKeyboardMarkup(
     ]
 )
 
-# cancel_create_qe_callback = CallbackData("action", "approve")
-# cancel_create_qe_kb = InlineKeyboardMarkup(
-#     row_width=1,
-#     inline_keyboard=[
-#         [
-#             InlineKeyboardButton(text="❌ Отмена", callback_data=cancel_create_qe_callback.new(approve="cancel_create"))
-#         ]
-#     ]
-# )
-
 
 async def qe_list_kb(questionnaires: list):
     buttons = []
@@ -75,8 +65,9 @@ async def qe_list_kb(questionnaires: list):
     buttons.append(InlineKeyboardButton(text="◀️ Главное меню",
                                         callback_data=qe_list_callback.new(qe_id="main_menu")))
     keyboard = InlineKeyboardMarkup(row_width=1)
-    for button in buttons:
-        keyboard.row(button)
+    for i in range(len(buttons) - 2):
+        keyboard.row(buttons[i], buttons[i + 1])
+    keyboard.row(buttons[-1])
     return keyboard
 
 
@@ -191,7 +182,7 @@ def parse_answer_options_kb(options_quantity: int):
     buttons = []
     for i in range(options_quantity):
         buttons.append(InlineKeyboardButton(text=f"{ANSWER_LETTERS[i]}",
-                                            callback_data=answer_options_callback.new(answer=f"{ANSWER_LETTERS[i]}")))
+                                            callback_data=answer_options_callback.new(answer=f"{ANSWER_LETTERS[i]}{i}")))
     buttons.append(InlineKeyboardButton(text="❌ Отмена", callback_data=answer_options_callback.new(answer="cancel")))
 
     keyboard = InlineKeyboardMarkup(row_width=options_quantity)
