@@ -28,7 +28,7 @@ async def restart_bot(message: types.Message, state: FSMContext):
 
 @rate_limit(5)
 async def get_help(message: types.Message):
-    await message.answer("🛠 Если что-то пошло не так, нажмите на команду <b>/restart</b>, чтобы перезапустить бота. "
+    await message.answer("🛠 Если что-то пошло не так, нажмите <b>/restart</b>, чтобы перезапустить бота. "
                          f"Пожалуйста, сообщите об ошибке разработчику: <b>{ADMIN_USERNAME}</b>")
 
 

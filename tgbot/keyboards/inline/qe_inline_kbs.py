@@ -61,13 +61,14 @@ async def qe_list_kb(questionnaires: list):
         questionnaire = await db_commands.select_questionnaire(qe_id=qe.qe_id)
         buttons.append(InlineKeyboardButton(text=f"{questionnaire.title}",
                                             callback_data=qe_list_callback.new(qe_id=f"{qe.qe_id}")))
-
-    buttons.append(InlineKeyboardButton(text="◀️ Главное меню",
-                                        callback_data=qe_list_callback.new(qe_id="main_menu")))
-    keyboard = InlineKeyboardMarkup(row_width=1)
-    for i in range(len(buttons) - 2):
+    keyboard = InlineKeyboardMarkup()
+    i = 0
+    while i < (len(buttons) - 1):
         keyboard.row(buttons[i], buttons[i + 1])
-    keyboard.row(buttons[-1])
+        i += 2
+    if len(buttons) % 2 != 0:
+        keyboard.row(buttons[-1])
+    keyboard.row(InlineKeyboardButton(text="◀️ Главное меню", callback_data=qe_list_callback.new(qe_id="main_menu")))
     return keyboard
 
 
@@ -84,7 +85,7 @@ async def created_qe_statistics_kb(is_active: str, qe_id: str):
         act = "resume_qe"
     share_link = await parse_share_link(qe_id=qe_id)
     buttons = [
-        InlineKeyboardButton(text="📨 Посмотреть ответы", callback_data=statistics_kb_callback.new(act="get_file")),
+        InlineKeyboardButton(text="📨 Ответы", callback_data=statistics_kb_callback.new(act="get_file")),
         InlineKeyboardButton(text="📎 Ссылка", switch_inline_query=share_link),
         InlineKeyboardButton(text=f"{status}", callback_data=statistics_kb_callback.new(act=f"{act}")),
         InlineKeyboardButton(text="🚮 Удалить опрос", callback_data=statistics_kb_callback.new(act="delete")),
@@ -92,8 +93,7 @@ async def created_qe_statistics_kb(is_active: str, qe_id: str):
         InlineKeyboardButton(text="⏺ Главное меню", callback_data=statistics_kb_callback.new(act="main_menu"))
     ]
 
-    keyboard.row(buttons[0])
-    keyboard.row(buttons[1])
+    keyboard.row(buttons[0], buttons[1])
     keyboard.row(buttons[2])
     keyboard.row(buttons[3])
     keyboard.row(buttons[4], buttons[5])

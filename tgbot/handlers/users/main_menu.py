@@ -52,6 +52,7 @@ async def user_passed_questionnaires(message: types.Message, state: FSMContext):
 async def user_statistics(message: types.Message):
     user = await db_commands.select_user(id=message.from_user.id)
     created_qes = await db_commands.select_user_created_qes(creator_id=message.from_user.id)
+
     total_respondents = 0
     pass_percent = 0
     for created_qe in created_qes:

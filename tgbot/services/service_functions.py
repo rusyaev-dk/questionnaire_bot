@@ -112,7 +112,7 @@ async def statistics_qe_text(questionnaire: Questionnaire):
                        f"• Прошли: <b>{questionnaire.passed_by}</b> чел.\n"
                        f"• Процент прохождения: <b>{pass_percent:.1f}%</b>\n"
                        f"• Среднее время прохождения: <b>{average_ct[0]:.1f}</b> {average_ct[1]}\n"
-                       f"• Дата создания: <b>{questionnaire.created_at}</b>")
+                       f"• Дата создания: <b>{str(questionnaire.created_at)[0:16]}</b>")
     return statistics_text
 
 

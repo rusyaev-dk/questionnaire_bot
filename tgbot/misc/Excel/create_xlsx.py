@@ -4,6 +4,7 @@ from openpyxl.styles import Alignment
 from tgbot.misc.dependences import BOT_USERNAME
 from tgbot.services.database import db_commands
 from tgbot.services.database.db_models import Questionnaire
+from tgbot.services.service_functions import get_average_completion_time
 
 
 async def create_xlsx_file(questionnaire: Questionnaire):
@@ -37,6 +38,23 @@ async def create_xlsx_file(questionnaire: Questionnaire):
         col.width = len(questions[i]) + 10
         col.alignment = Alignment(horizontal="center")
         i += 1
+
+    if questionnaire.passed_by == 0:
+        pass_percent = 0
+    else:
+        pass_percent = questionnaire.passed_by / questionnaire.started_by * 100
+
+    average_ct = await get_average_completion_time(qe_id=questionnaire.qe_id)
+
+    sheet_2.append(["📊 Статистика опроса:"])
+    sheet_2.append([f"• Начали проходить: {questionnaire.started_by} чел."])
+    sheet_2.append([f"• Прошли: {questionnaire.passed_by} чел."])
+    sheet_2.append([f"• Процент прохождения: {pass_percent:.1f}%"])
+    sheet_2.append([f"• Среднее время прохождения: {average_ct[0]:.1f} {average_ct[1]}"])
+    sheet_2.append([f"• Дата создания: {str(questionnaire.created_at)[0:16]}"])
+
+    col = sheet_2.column_dimensions[f'A']
+    col.width = 50
 
     path = rf'D:\PycharmProjects\{BOT_USERNAME}\tgbot\misc\Excel\xlsx_files\{qe_title}.xlsx'
     book.save(path)
