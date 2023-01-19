@@ -3,7 +3,6 @@ from typing import List
 from aiogram import Dispatcher
 from gino import Gino
 import sqlalchemy as sa
-from sqlalchemy import Column, DateTime
 
 import tgbot.config
 
@@ -26,15 +25,6 @@ class BaseModel(db.Model):
         }
         values_str = " ".join(f"{name}={value!r}" for name, value in values.items())
         return f"<{model} {values_str}>"
-
-
-class TimeBaseModel(BaseModel):
-    __abstract__ = True
-    created_at = Column(DateTime(True), server_default=db.func.now())
-    updated_at = Column(DateTime(True),
-                        default=db.func.now(),
-                        onupdate=db.func.now(),
-                        server_default=db.func.now())
 
 
 async def on_startup(dp: Dispatcher):

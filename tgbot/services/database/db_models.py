@@ -1,9 +1,11 @@
+from datetime import date
+
 from sqlalchemy import Column, String, sql, Integer, Float, BigInteger
 
-from tgbot.services.database.db_gino import TimeBaseModel, BaseModel
+from tgbot.services.database.db_gino import BaseModel
 
 
-class User(TimeBaseModel):
+class User(BaseModel):
     __tablename__ = "users"
 
     id = Column(BigInteger, primary_key=True)
@@ -17,7 +19,7 @@ class User(TimeBaseModel):
     query: sql.Select
 
 
-class Questionnaire(TimeBaseModel):
+class Questionnaire(BaseModel):
     __tablename__ = "questionnaires"
 
     qe_id = Column(String(10), primary_key=True)
@@ -28,6 +30,8 @@ class Questionnaire(TimeBaseModel):
     started_by = Column(Integer, default=0)
     passed_by = Column(Integer, default=0)
     questions_quantity = Column(Integer, default=1)
+
+    created_at = Column(String(15), default=f"{date.today()}")
 
     query: sql.Select
 
@@ -85,5 +89,6 @@ class PassedQuestionnaire(BaseModel):
     qe_id = Column(String(10))
 
     completion_time = Column(Float, default=0)
+    passed_at = Column(String(15), default=f"{date.today()}")
 
     query: sql.Select

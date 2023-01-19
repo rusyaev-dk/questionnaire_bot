@@ -112,7 +112,7 @@ async def statistics_qe_text(questionnaire: Questionnaire):
                        f"• Прошли: <b>{questionnaire.passed_by}</b> чел.\n"
                        f"• Процент прохождения: <b>{pass_percent:.1f}%</b>\n"
                        f"• Среднее время прохождения: <b>{average_ct[0]:.1f}</b> {average_ct[1]}\n"
-                       f"• Дата создания: <b>{str(questionnaire.created_at)[0:16]}</b>")
+                       f"• Дата создания: <b>{questionnaire.created_at}</b>")
     return statistics_text
 
 
@@ -123,17 +123,17 @@ async def passed_qe_info(respondent_id: int, questionnaire: Questionnaire, markd
 
     questions = await db_commands.select_questions(qe_id=questionnaire.qe_id)
     answers = await db_commands.select_user_answers(respondent_id=respondent_id, qe_id=questionnaire.qe_id)
-
+    passed_qe = await db_commands.select_passed_qe(respondent_id=respondent_id, qe_id=questionnaire.qe_id)
     if markdown:
         text = f"🔹 Название: **{questionnaire.title}**\n\n"
         for i in range(questionnaire.questions_quantity):
             text += (f"• {i + 1}-й вопрос: **{questions[i].question_text}**\n"
                      f"Ответ: **{answers[i].answer_text}**\n\n")
-        text += f"• Дата прохождения: **{questionnaire.created_at}**"
+        text += f"• Дата прохождения: **{passed_qe.passed_at}**"
     else:
         text = f"🔹 Название: <b>{questionnaire.title}</b>\n\n"
         for i in range(questionnaire.questions_quantity):
             text += (f"• {i + 1}-й вопрос: <b>{questions[i].question_text}</b>\n"
                      f"Ответ: <b>{answers[i].answer_text}</b>\n\n")
-        text += f"• Дата прохождения: <b>{questionnaire.created_at}</b>"
+        text += f"• Дата прохождения: <b>{passed_qe.passed_at}</b>"
     return text

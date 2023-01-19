@@ -145,6 +145,12 @@ async def select_passed_qes(qe_id: str):
     return passed_qes
 
 
+async def select_passed_qe(respondent_id: int, qe_id: str):
+    passed_qe = await PassedQuestionnaire.query.where(and_(PassedQuestionnaire.respondent_id == respondent_id,
+                                                           PassedQuestionnaire.qe_id == qe_id)).gino.first()
+    return passed_qe
+
+
 """ ____________Count functions____________ """
 
 

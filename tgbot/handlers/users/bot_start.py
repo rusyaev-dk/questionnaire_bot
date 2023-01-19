@@ -1,5 +1,6 @@
 import re
 import time
+from math import fabs
 
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
@@ -45,9 +46,12 @@ async def deeplink_bot_start(message: types.Message, state: FSMContext):
             else:
                 if questionnaire.is_active == "true":
                     average_ct = await get_average_completion_time(qe_id=qe_id)
+                    if fabs(average_ct[0]) < 10E-9:
+                        text = "• Вы первый респондент этого опроса!"
+                    else:
+                        text = f"• Среднее время прохождения: <b>{average_ct[0]:.1f}</b> {average_ct[1]}"
                     await message.answer(f"• Опрос: <b>{questionnaire.title}</b>\n"
-                                         f"• Среднее время прохождения: <b>{average_ct[0]:.1f}</b> {average_ct[1]}",
-                                         reply_markup=ReplyKeyboardRemove())
+                                         f"{text}", reply_markup=ReplyKeyboardRemove())
                     await message.answer(f"🔸 Начать прохождение опроса?", reply_markup=pass_qe_approve_kb)
                     await state.update_data(qe_id=qe_id)
                     await PassQe.PassBeginApprove.set()

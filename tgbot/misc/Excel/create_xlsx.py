@@ -51,7 +51,7 @@ async def create_xlsx_file(questionnaire: Questionnaire):
     sheet_2.append([f"• Прошли: {questionnaire.passed_by} чел."])
     sheet_2.append([f"• Процент прохождения: {pass_percent:.1f}%"])
     sheet_2.append([f"• Среднее время прохождения: {average_ct[0]:.1f} {average_ct[1]}"])
-    sheet_2.append([f"• Дата создания: {str(questionnaire.created_at)[0:16]}"])
+    sheet_2.append([f"• Дата создания: {questionnaire.created_at}"])
 
     col = sheet_2.column_dimensions[f'A']
     col.width = 50
