@@ -2,7 +2,7 @@ from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.types import ReplyKeyboardRemove
 
-from tgbot.keyboards.inline.qe_inline_kbs import qe_list_kb
+from tgbot.keyboards.qe_inline_kbs import qe_list_kb
 from tgbot.misc.dependences import CREATED_GUIDE_MESSAGE, DEVELOPER_INFO_MESSAGE, PASSED_GUIDE_MESSAGE
 from tgbot.misc.states import CreatedQeStatistics, PassedQeStatistics, CreateQe
 from tgbot.misc.throttling_function import rate_limit

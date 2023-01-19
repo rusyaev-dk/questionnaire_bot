@@ -3,8 +3,8 @@ import time
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 
-from tgbot.keyboards.default.qe_text_keyboards import main_menu_kb
-from tgbot.keyboards.inline.qe_inline_kbs import parse_answer_options_kb, answers_approve_kb, \
+from tgbot.keyboards.qe_reply_kbs import main_menu_kb
+from tgbot.keyboards.qe_inline_kbs import parse_answer_options_kb, answers_approve_kb, \
     answer_options_callback, answers_approve_callback, answers_approves
 from tgbot.misc.states import PassQe
 from tgbot.services.database import db_commands

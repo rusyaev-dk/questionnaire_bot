@@ -6,8 +6,8 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import CommandStart
 from aiogram.types import ReplyKeyboardRemove
 
-from tgbot.keyboards.default.qe_text_keyboards import main_menu_kb
-from tgbot.keyboards.inline.qe_inline_kbs import replay_qe_approve_kb, replay_qe_approve_callback, \
+from tgbot.keyboards.qe_reply_kbs import main_menu_kb
+from tgbot.keyboards.qe_inline_kbs import replay_qe_approve_kb, replay_qe_approve_callback, \
     replay_approves, parse_answer_options_kb, pass_qe_approve_kb, pass_qe_approve_callback, pass_qe_approves
 from tgbot.misc.states import PassQe
 from tgbot.misc.throttling_function import rate_limit

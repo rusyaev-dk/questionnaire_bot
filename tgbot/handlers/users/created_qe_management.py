@@ -3,12 +3,11 @@ import os
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 
-from tgbot.keyboards.default.qe_text_keyboards import main_menu_kb
-from tgbot.keyboards.inline.qe_inline_kbs import created_qe_statistics_kb, qe_list_callback, \
+from tgbot.keyboards.qe_reply_kbs import main_menu_kb
+from tgbot.keyboards.qe_inline_kbs import created_qe_statistics_kb, qe_list_callback, \
     statistics_kb_callback, statistics_acts, file_type_kb, file_type_callback, f_types, delete_qe_approve_kb, \
     delete_qe_approve_callback, delete_qe_approves, qe_list_kb
 from tgbot.misc.Excel.create_xlsx import create_xlsx_file
-from tgbot.misc.PDF.create_pdf import create_pdf_file
 from tgbot.misc.states import CreatedQeStatistics
 
 from tgbot.services.database import db_commands

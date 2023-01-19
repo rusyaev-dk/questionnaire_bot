@@ -1,8 +1,8 @@
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 
-from tgbot.keyboards.default.qe_text_keyboards import main_menu_kb
-from tgbot.keyboards.inline.qe_inline_kbs import passed_qe_statistics_kb, qe_list_callback, \
+from tgbot.keyboards.qe_reply_kbs import main_menu_kb
+from tgbot.keyboards.qe_inline_kbs import passed_qe_statistics_kb, qe_list_callback, \
     statistics_kb_callback, statistics_acts
 from tgbot.misc.states import PassedQeStatistics
 from tgbot.services.database import db_commands

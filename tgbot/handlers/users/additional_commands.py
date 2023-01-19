@@ -1,7 +1,7 @@
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 
-from tgbot.keyboards.default.qe_text_keyboards import main_menu_kb
+from tgbot.keyboards.qe_reply_kbs import main_menu_kb
 from tgbot.misc.throttling_function import rate_limit
 
 from tgbot.services.database import db_commands
@@ -42,7 +42,7 @@ async def get_bot_statistics(message: types.Message):
 
 
 def register_service_commands(dp: Dispatcher):
-    dp.register_message_handler(get_main_menu, commands=["main_menu"], state="*")
+    dp.register_message_handler(get_main_menu, commands=["menu"], state="*")
     dp.register_message_handler(cancel_action, commands=["cancel"], state="*")
     dp.register_message_handler(restart_bot, commands=["restart"], state="*")
     dp.register_message_handler(get_help, commands=["help"], state="*")

@@ -1,8 +1,8 @@
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 
-from tgbot.keyboards.default.qe_text_keyboards import main_menu_kb
-from tgbot.keyboards.inline.qe_inline_kbs import questionnaire_approve_kb, question_type_kb, share_link_kb, \
+from tgbot.keyboards.qe_reply_kbs import main_menu_kb
+from tgbot.keyboards.qe_inline_kbs import questionnaire_approve_kb, question_type_kb, share_link_kb, \
     question_type_callback, question_types, qe_approve_callback, qe_approves
 from tgbot.misc.states import CreateQe
 from tgbot.services.database import db_commands
