@@ -88,7 +88,8 @@ async def get_closed_answer(call: types.CallbackQuery, callback_data: dict, stat
             question = questions[counter]
 
             if question.question_type == "open":
-                await call.message.answer(f"❓ {counter + 1}-й вопрос: {question.question_text}")
+                await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
+                                                 text=f"❓ {counter + 1}-й вопрос: {question.question_text}")
                 await PassQe.OpenAnswer.set()
             else:
                 answer_options = await db_commands.select_answer_options(question_id=question.question_id)
