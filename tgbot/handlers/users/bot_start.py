@@ -18,13 +18,13 @@ from tgbot.misc.dependences import WELCOME_MESSAGE
 from tgbot.services.service_functions import parse_answer_options, get_average_completion_time
 
 
-@rate_limit(5)
+@rate_limit(2)
 async def bot_start(message: types.Message):
     await message.answer(text=WELCOME_MESSAGE, reply_markup=main_menu_kb)
     await db_commands.add_user(id=message.from_user.id, name=message.from_user.full_name)
 
 
-@rate_limit(5)
+@rate_limit(2)
 async def deeplink_bot_start(message: types.Message, state: FSMContext):
     qe_id = message.get_args()
 
