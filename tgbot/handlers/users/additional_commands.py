@@ -8,31 +8,31 @@ from tgbot.services.database import db_commands
 from tgbot.misc.dependences import ADMIN_USERNAME
 
 
-@rate_limit(5)
+@rate_limit(3)
 async def get_main_menu(message: types.Message, state: FSMContext):
     await message.answer("Главное меню:", reply_markup=main_menu_kb)
     await state.finish()
 
 
-@rate_limit(5)
+@rate_limit(3)
 async def cancel_action(message: types.Message, state: FSMContext):
     await message.answer("↩️ Текущее действие отменено. Главное меню:", reply_markup=main_menu_kb)
     await state.finish()
 
 
-@rate_limit(5)
+@rate_limit(3)
 async def restart_bot(message: types.Message, state: FSMContext):
     await message.answer("♻️ Бот перезапущен. Главное меню:", reply_markup=main_menu_kb)
     await state.finish()
 
 
-@rate_limit(5)
+@rate_limit(3)
 async def get_help(message: types.Message):
     await message.answer("🛠 Если что-то пошло не так, нажмите <b>/restart</b>, чтобы перезапустить бота. "
                          f"Пожалуйста, сообщите об ошибке разработчику: <b>{ADMIN_USERNAME}</b>")
 
 
-@rate_limit(5)
+@rate_limit(3)
 async def get_bot_statistics(message: types.Message):
     total_users = await db_commands.count_users()
     total_qes = await db_commands.count_qes()

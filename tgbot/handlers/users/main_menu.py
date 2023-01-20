@@ -9,13 +9,13 @@ from tgbot.misc.throttling_function import rate_limit
 from tgbot.services.database import db_commands
 
 
-@rate_limit(5)
+@rate_limit(3)
 async def create_questionnaire(message: types.Message):
     await message.answer("🏷 Введите <b>название</b> опроса:", reply_markup=ReplyKeyboardRemove())
     await CreateQe.Title.set()
 
 
-@rate_limit(5)
+@rate_limit(2)
 async def user_created_questionnaires(message: types.Message, state: FSMContext):
     created_qes = await db_commands.select_user_created_qes(creator_id=message.from_user.id)
     if len(created_qes) > 0:
@@ -29,7 +29,7 @@ async def user_created_questionnaires(message: types.Message, state: FSMContext)
         await message.answer("📂 У Вас нет созданных опросов.")
 
 
-@rate_limit(5)
+@rate_limit(2)
 async def user_passed_questionnaires(message: types.Message, state: FSMContext):
     passed_qes = await db_commands.select_user_passed_qes(respondent_id=message.from_user.id)
     if len(passed_qes) > 0:
@@ -48,7 +48,7 @@ async def user_passed_questionnaires(message: types.Message, state: FSMContext):
             await message.answer("📭 Вы ещё не проходили опросы.")
 
 
-@rate_limit(5)
+@rate_limit(2)
 async def user_statistics(message: types.Message):
     user = await db_commands.select_user(id=message.from_user.id)
     created_qes = await db_commands.select_user_created_qes(creator_id=message.from_user.id)
@@ -72,7 +72,7 @@ async def user_statistics(message: types.Message):
                          f"• Процент прохождения Ваших опросов: <b>{average_pass_percent:.1f}%</b>")
 
 
-@rate_limit(5)
+@rate_limit(limit=2, key=1)
 async def developer_info(message: types.Message):
     await message.answer(text=DEVELOPER_INFO_MESSAGE)
 
