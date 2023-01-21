@@ -32,7 +32,7 @@ async def passed_qe_management(call: types.CallbackQuery, callback_data: dict, s
         data = await state.get_data()
         keyboard = data.get("keyboard")
         await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                         text="Выберите опрос для отображения информации:",
+                                         text="🔍 Выберите опрос для отображения информации:",
                                          reply_markup=keyboard)
         await PassedQeStatistics.SelectQE.set()
 

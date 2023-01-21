@@ -35,16 +35,16 @@ async def deeplink_bot_start(message: types.Message, state: FSMContext):
     if len(qe_id) == 10:
         questionnaire = await db_commands.select_questionnaire(qe_id=qe_id)
         if questionnaire:
-            passed = await db_commands.is_passed(respondent_id=message.from_user.id, qe_id=qe_id)
-            if passed:
-                await message.answer(f"❗️ Вы уже прошли опрос <b>{questionnaire.title}</b>. В случае повторного "
-                                     f"прохождения предыдущие ответы будут <b>удалены</b>.",
-                                     reply_markup=ReplyKeyboardRemove())
-                await message.answer("🔸 Пройти опрос заново?", reply_markup=replay_qe_approve_kb)
-                await state.update_data(qe_id=qe_id)
-                await PassQe.PassReplayApprove.set()
-            else:
-                if questionnaire.is_active == "true":
+            if questionnaire.is_active == "true":
+                passed = await db_commands.is_passed(respondent_id=message.from_user.id, qe_id=qe_id)
+                if passed:
+                    await message.answer(f"❗️ Вы уже прошли опрос <b>{questionnaire.title}</b>. В случае повторного "
+                                         f"прохождения предыдущие ответы будут <b>удалены</b>.",
+                                         reply_markup=ReplyKeyboardRemove())
+                    await message.answer("🔸 Пройти опрос заново?", reply_markup=replay_qe_approve_kb)
+                    await state.update_data(qe_id=qe_id)
+                    await PassQe.PassReplayApprove.set()
+                else:
                     average_ct = await get_average_completion_time(qe_id=qe_id)
                     if fabs(average_ct[0]) < 10E-9:
                         text = "• Вы первый респондент этого опроса!"
@@ -55,9 +55,9 @@ async def deeplink_bot_start(message: types.Message, state: FSMContext):
                     await message.answer(f"🔸 Начать прохождение опроса?", reply_markup=pass_qe_approve_kb)
                     await state.update_data(qe_id=qe_id)
                     await PassQe.PassBeginApprove.set()
-                else:
-                    await message.answer("⛔️ Данный опрос был остановлен автором. Пожалуйста, попробуйте позже.",
-                                         reply_markup=main_menu_kb)
+            else:
+                await message.answer("⛔️ Данный опрос был остановлен автором. Пожалуйста, попробуйте позже.",
+                                     reply_markup=main_menu_kb)
         else:
             await message.answer("🚫 Опрос не найден.", reply_markup=main_menu_kb)
     else:
@@ -113,38 +113,33 @@ async def replay_qe_approve(call: types.CallbackQuery, callback_data: dict, stat
         qe_id = data.get("qe_id")
         questionnaire = await db_commands.select_questionnaire(qe_id=qe_id)
         if questionnaire:
-            if questionnaire.is_active == "true":
-                await db_commands.delete_user_answers(respondent_id=call.from_user.id, qe_id=qe_id)  # !!!
-                await db_commands.delete_user_passed_qe(respondent_id=call.from_user.id, qe_id=qe_id)
-                await db_commands.decrease_passed_by(qe_id=qe_id)
+            await db_commands.delete_user_answers(respondent_id=call.from_user.id, qe_id=qe_id)  # !!!
+            await db_commands.delete_user_passed_qe(respondent_id=call.from_user.id, qe_id=qe_id)
+            await db_commands.decrease_passed_by(qe_id=qe_id)
 
-                # await increase_qe_started_by(qe_id=questionnaire.qe_id)
-                await db_commands.increase_link_clicks(creator_id=questionnaire.creator_id)
-                questions = await db_commands.select_questions(qe_id=qe_id)
-                question = questions[0]
+            await db_commands.increase_link_clicks(creator_id=questionnaire.creator_id)
+            questions = await db_commands.select_questions(qe_id=qe_id)
+            question = questions[0]
 
-                if question.question_type == "open":
-                    await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                                     text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n"
-                                                          f"❓ 1-й вопрос: {question.question_text}")
-                    await PassQe.OpenAnswer.set()
-                else:
-                    answer_options = await db_commands.select_answer_options(question_id=question.question_id)
-                    text = await parse_answer_options(answer_options=answer_options)
-                    keyboard = parse_answer_options_kb(options_quantity=len(answer_options))
-                    await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                                     text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n"
-                                                          f"❓ 1-й вопрос: {question.question_text}\n\n{text}",
-                                                     reply_markup=keyboard)
-                    await state.update_data(question_id=question.question_id)
-                    await PassQe.ClosedAnswer.set()
-
-                start_time = time.time()
-                await state.update_data(qe_id=questionnaire.qe_id, counter=0, start_time=start_time,
-                                        answers_quantity=questionnaire.questions_quantity)
+            if question.question_type == "open":
+                await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
+                                                 text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n"
+                                                      f"❓ 1-й вопрос: {question.question_text}")
+                await PassQe.OpenAnswer.set()
             else:
-                await call.message.answer("⛔️ Данный опрос был остановлен автором. Пожалуйста, попробуйте позже.",
-                                          reply_markup=main_menu_kb)
+                answer_options = await db_commands.select_answer_options(question_id=question.question_id)
+                text = await parse_answer_options(answer_options=answer_options)
+                keyboard = parse_answer_options_kb(options_quantity=len(answer_options))
+                await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
+                                                 text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n"
+                                                      f"❓ 1-й вопрос: {question.question_text}\n\n{text}",
+                                                 reply_markup=keyboard)
+                await state.update_data(question_id=question.question_id)
+                await PassQe.ClosedAnswer.set()
+
+            start_time = time.time()
+            await state.update_data(qe_id=questionnaire.qe_id, counter=0, start_time=start_time,
+                                    answers_quantity=questionnaire.questions_quantity)
         else:
             await call.message.answer("🚫 Опрос не найден.", reply_markup=main_menu_kb)
 
