@@ -1,3 +1,4 @@
+import logging
 import os
 
 from aiogram import types, Dispatcher
@@ -118,15 +119,19 @@ async def choose_file_type(call: types.CallbackQuery, callback_data: dict, state
     elif f_type == "xlsx":
         await call.answer("⏳ Пожалуйста, подождите...", show_alert=True)
         file_path = await create_xlsx_file(questionnaire=questionnaire)
-        if file_path:
+        try:
             await call.bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
             await call.message.answer_document(types.InputFile(rf"{file_path}"), caption="📌 Файл по Вашему опросу")
             keyboard = await created_qe_statistics_kb(is_active=questionnaire.is_active, qe_id=qe_id)
             await call.message.answer(text=stat_text, reply_markup=keyboard)
             os.remove(file_path)
             await CreatedQeStatistics.SelectStatsAct.set()
-        else:
+        except Exception as e:
+            logging.error(e)
             await call.answer("Что-то пошло не так. Сообщите об ошибке разработчику!", show_alert=True)
+            await call.bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
+            await call.message.answer("Главное меню:", reply_markup=main_menu_kb)
+            await state.finish()
 
     elif f_type == "step_back":
         keyboard = await created_qe_statistics_kb(is_active=questionnaire.is_active, qe_id=qe_id)
