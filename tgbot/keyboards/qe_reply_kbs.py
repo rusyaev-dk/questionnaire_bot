@@ -12,8 +12,8 @@ main_menu_kb = ReplyKeyboardMarkup(
             KeyboardButton(text="🗃 Пройденные опросы")
         ],
         [
-            KeyboardButton(text="📊 Моя статистика"),
-            KeyboardButton(text="👨‍💻 Разработчик")
+            KeyboardButton(text="📊 Моя статистика")
+            # KeyboardButton(text="🤖 О боте")
         ]
     ]
 )

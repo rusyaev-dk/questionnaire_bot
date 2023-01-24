@@ -22,6 +22,7 @@ async def cancel_action(message: types.Message, state: FSMContext):
 
 @rate_limit(3)
 async def restart_bot(message: types.Message, state: FSMContext):
+    await db_commands.add_user(id=message.from_user.id, name=message.from_user.full_name)
     await message.answer("♻️ Бот перезапущен. Главное меню:", reply_markup=main_menu_kb)
     await state.finish()
 

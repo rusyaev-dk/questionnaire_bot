@@ -3,7 +3,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.types import ReplyKeyboardRemove
 
 from tgbot.keyboards.qe_inline_kbs import qe_list_kb
-from tgbot.misc.dependences import CREATED_GUIDE_MESSAGE, DEVELOPER_INFO_MESSAGE, PASSED_GUIDE_MESSAGE
+from tgbot.misc.dependences import CREATED_GUIDE_MESSAGE, BOT_INFO_MESSAGE, PASSED_GUIDE_MESSAGE
 from tgbot.misc.states import CreatedQeStatistics, PassedQeStatistics, CreateQe
 from tgbot.misc.throttling_function import rate_limit
 from tgbot.services.database import db_commands
@@ -62,7 +62,10 @@ async def user_statistics(message: types.Message):
             pass_percent += questionnaire.passed_by / questionnaire.started_by * 100
         total_respondents += questionnaire.passed_by
 
-    average_pass_percent = pass_percent / len(created_qes)
+    if len(created_qes) > 0:
+        average_pass_percent = pass_percent / len(created_qes)
+    else:
+        average_pass_percent = 0
 
     await message.answer("📊 Ваша статистика:\n"
                          f"• Создано опросов: <b>{user.created_qe_quantity}</b>\n"
@@ -72,9 +75,9 @@ async def user_statistics(message: types.Message):
                          f"• Процент прохождения Ваших опросов: <b>{average_pass_percent:.1f}%</b>")
 
 
-@rate_limit(limit=2, key=1)
+@rate_limit(limit=2, key=2)
 async def developer_info(message: types.Message):
-    await message.answer(text=DEVELOPER_INFO_MESSAGE)
+    await message.answer(text=BOT_INFO_MESSAGE)
 
 
 def register_main_menu(dp: Dispatcher):
@@ -82,4 +85,4 @@ def register_main_menu(dp: Dispatcher):
     dp.register_message_handler(user_created_questionnaires, text="🗂 Созданные опросы", state="*")
     dp.register_message_handler(user_passed_questionnaires, text="🗃 Пройденные опросы", state="*")
     dp.register_message_handler(user_statistics, text="📊 Моя статистика", state="*")
-    dp.register_message_handler(developer_info, text="👨‍💻 Разработчик", state="*")
+    dp.register_message_handler(developer_info, text="🤖 О боте", state="*")

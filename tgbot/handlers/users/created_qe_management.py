@@ -27,8 +27,7 @@ async def get_created_qe_statistics(call: types.CallbackQuery, callback_data: di
         qe_text = await created_qe_info(questionnaire=questionnaire)
         stat_text = await statistics_qe_text(questionnaire=questionnaire)
 
-        await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                         text=qe_text)
+        await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id, text=qe_text)
         keyboard = await created_qe_statistics_kb(is_active=questionnaire.is_active, qe_id=qe_id)
         await call.message.answer(text=stat_text, reply_markup=keyboard)
         await state.update_data(qe_id=qe_id)
