@@ -16,7 +16,7 @@ from tgbot.handlers.users.pass_questionnaire import register_pass_questionnaire
 from tgbot.handlers.users.passed_qe_management import register_passed_qe_management
 from tgbot.handlers.users.bot_start import register_bot_start
 from tgbot.handlers.users.main_menu import register_main_menu
-from tgbot.handlers.users.additional_commands import register_service_commands
+from tgbot.handlers.users.additional_commands import register_additional_commands
 from tgbot.middlewares.db import DbMiddleware
 from tgbot.middlewares.throttling import ThrottlingMiddleware
 from tgbot.services import set_bot_commands, notify_admins
@@ -41,7 +41,7 @@ def register_all_handlers(dp):
 
     register_errors_handler(dp)
 
-    register_service_commands(dp)
+    register_additional_commands(dp)
     register_notify_users(dp)
 
     register_create_questionnaire(dp)

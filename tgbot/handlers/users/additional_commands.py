@@ -42,7 +42,7 @@ async def get_bot_statistics(message: types.Message):
                          f"• Создано опросов: <b>{total_qes}</b>\n")
 
 
-def register_service_commands(dp: Dispatcher):
+def register_additional_commands(dp: Dispatcher):
     dp.register_message_handler(get_main_menu, commands=["menu"], state="*")
     dp.register_message_handler(cancel_action, commands=["cancel"], state="*")
     dp.register_message_handler(restart_bot, commands=["restart"], state="*")
