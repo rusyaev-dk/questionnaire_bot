@@ -93,6 +93,7 @@ async def notify_approve(call: types.CallbackQuery, callback_data: dict, state: 
         await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
                                          text="❌ Рассылка отменена.")
         await call.message.answer("Главное меню:", reply_markup=main_menu_kb)
+    await state.reset_data()
     await state.finish()
 
 

@@ -68,6 +68,7 @@ async def get_closed_answer(call: types.CallbackQuery, callback_data: dict, stat
         await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
                                          text="❌ Прохождение опроса отменено.")
         await call.message.answer("Главное меню:", reply_markup=main_menu_kb)
+        await state.reset_data()
         await state.finish()
     else:
         answer_id = generate_random_id(length=USER_ANSWER_ID_LENGTH)
@@ -124,12 +125,14 @@ async def answers_approve(call: types.CallbackQuery, callback_data: dict, state:
         await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
                                          text="📮 Ваши ответы отправлены автору опроса.")
         await call.message.answer("Главное меню:", reply_markup=main_menu_kb)
+        await state.reset_data()
         await state.finish()
     elif approve == "delete":
         await db_commands.delete_user_answers(respondent_id=call.from_user.id, qe_id=qe_id)
         await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
                                          text="❌ Ваши ответы удалены.")
         await call.message.answer("Главное меню:", reply_markup=main_menu_kb)
+        await state.reset_data()
         await state.finish()
 
 

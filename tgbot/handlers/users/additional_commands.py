@@ -8,26 +8,62 @@ from tgbot.services.database import db_commands
 from tgbot.misc.dependences import ADMIN_USERNAME
 
 
-@rate_limit(3)
+@rate_limit(2)
 async def get_main_menu(message: types.Message, state: FSMContext):
-    await message.answer("Главное меню:", reply_markup=main_menu_kb)
+    await db_commands.add_user(id=message.from_user.id, name=message.from_user.full_name)
+    state_name = await state.get_state()
+    if state_name:
+        if "CreateQe" in state_name:
+            await message.answer("❌ Создание опроса отменено. Главное меню:", reply_markup=main_menu_kb)
+        elif "PassQe" in state_name:
+            await message.answer("❌ Прохождение опроса отменено. Главное меню:", reply_markup=main_menu_kb)
+        else:
+            await message.answer("Главное меню:", reply_markup=main_menu_kb)
+    else:
+        await message.answer("Главное меню:", reply_markup=main_menu_kb)
+
+    await state.reset_data()
     await state.finish()
 
 
-@rate_limit(3)
+@rate_limit(2)
 async def cancel_action(message: types.Message, state: FSMContext):
-    await message.answer("↩️ Текущее действие отменено. Главное меню:", reply_markup=main_menu_kb)
+    state_name = await state.get_state()
+    if state_name:
+        if "CreateQe" in state_name:
+            await message.answer("❌ Создание опроса отменено. Главное меню:", reply_markup=main_menu_kb)
+        elif "PassQe" in state_name:
+            await message.answer("❌ Прохождение опроса отменено. Главное меню:", reply_markup=main_menu_kb)
+        else:
+            await message.answer("↩️ Текущее действие отменено. Главное меню:", reply_markup=main_menu_kb)
+    else:
+        await message.answer("↩️ Текущее действие отменено. Главное меню:", reply_markup=main_menu_kb)
+
+    await state.reset_data()
     await state.finish()
 
 
 @rate_limit(3)
 async def restart_bot(message: types.Message, state: FSMContext):
     await db_commands.add_user(id=message.from_user.id, name=message.from_user.full_name)
-    await message.answer("♻️ Бот перезапущен. Главное меню:", reply_markup=main_menu_kb)
+    state_name = await state.get_state()
+    if state_name:
+        if "CreateQe" in state_name:
+            await message.answer("❌ Создание опроса отменено. ♻️ Бот перезапущен.\nГлавное меню:",
+                                 reply_markup=main_menu_kb)
+        elif "PassQe" in state_name:
+            await message.answer("❌ Прохождение опроса отменено. ♻️ Бот перезапущен.\nГлавное меню:",
+                                 reply_markup=main_menu_kb)
+        else:
+            await message.answer("♻️ Бот перезапущен. Главное меню:", reply_markup=main_menu_kb)
+    else:
+        await message.answer("♻️ Бот перезапущен. Главное меню:", reply_markup=main_menu_kb)
+
+    await state.reset_data()
     await state.finish()
 
 
-@rate_limit(3)
+@rate_limit(2)
 async def get_help(message: types.Message):
     await message.answer("🛠 Если что-то пошло не так, нажмите <b>/restart</b>, чтобы перезапустить бота. "
                          f"Пожалуйста, сообщите об ошибке разработчику: <b>{ADMIN_USERNAME}</b>")

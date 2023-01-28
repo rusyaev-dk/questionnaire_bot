@@ -14,6 +14,7 @@ async def get_passed_qe_statistics(call: types.CallbackQuery, callback_data: dic
     if qe_id == "main_menu":
         await call.bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
         await call.message.answer("Главное меню:", reply_markup=main_menu_kb)
+        await state.reset_data()
         await state.finish()
     else:
         questionnaire = await db_commands.select_questionnaire(qe_id=qe_id)
@@ -39,6 +40,7 @@ async def passed_qe_management(call: types.CallbackQuery, callback_data: dict, s
     elif act == "main_menu":
         await call.bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
         await call.message.answer("Главное меню:", reply_markup=main_menu_kb)
+        await state.reset_data()
         await state.finish()
 
 

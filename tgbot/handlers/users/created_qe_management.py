@@ -89,6 +89,7 @@ async def created_qe_management(call: types.CallbackQuery, callback_data: dict, 
     elif act == "main_menu":
         await call.bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
         await call.message.answer("Главное меню:", reply_markup=main_menu_kb)
+        await state.reset_data()
         await state.finish()
 
 
@@ -130,6 +131,7 @@ async def choose_file_type(call: types.CallbackQuery, callback_data: dict, state
             await call.answer("Что-то пошло не так. Сообщите об ошибке разработчику!", show_alert=True)
             await call.bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
             await call.message.answer("Главное меню:", reply_markup=main_menu_kb)
+            await state.reset_data()
             await state.finish()
 
     elif f_type == "step_back":
@@ -141,6 +143,7 @@ async def choose_file_type(call: types.CallbackQuery, callback_data: dict, state
     elif f_type == "main_menu":
         await call.bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
         await call.message.answer(text="Главное меню:", reply_markup=main_menu_kb)
+        await state.reset_data()
         await state.finish()
 
 
@@ -164,6 +167,7 @@ async def delete_qe_approve(call: types.CallbackQuery, callback_data: dict, stat
             await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
                                              text="📭 У Вас нет созданных опросов.")
             await call.message.answer("Главное меню:", reply_markup=main_menu_kb)
+            await state.reset_data()
             await state.finish()
 
     elif approve == "cancel":
