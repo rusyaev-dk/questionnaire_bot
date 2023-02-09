@@ -1,5 +1,6 @@
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
+from aiogram.utils.markdown import quote_html
 
 from tgbot.keyboards.qe_reply_kbs import main_menu_kb
 from tgbot.keyboards.qe_inline_kbs import questionnaire_approve_kb, question_type_kb, share_link_kb, \
@@ -17,11 +18,9 @@ async def get_qe_title(message: types.Message, state: FSMContext):
                              "Введите название снова:")
         return
 
-    elif ">" in message.text or "<" in message.text:
-        await message.answer("❗️ Пожалуйста, не используйте символы \"<\" и \">\".", parse_mode='Markdown')
-        return
-
     else:
+        if ">" in message.text or "<" in message.text:
+            message.text = quote_html(message.text)
         await state.update_data(title=message.text)
         await message.answer("🔸 Введите <b>количество</b> вопросов:")
         await CreateQe.QuestionsQuantity.set()
@@ -48,7 +47,7 @@ async def get_questions_quantity(message: types.Message, state: FSMContext):
                                                    questions_quantity=questions_quantity)
             await state.update_data(qe_id=qe_id, questions_quantity=questions_quantity, counter=0)
 
-            await message.answer("📍 Укажите тип 1-го вопроса:", reply_markup=question_type_kb)
+            await message.answer("📍 Укажите <b>тип</b> 1-го вопроса:", reply_markup=question_type_kb)
             await CreateQe.QuestionType.set()
     except ValueError:
         await message.answer("❗️ Введите целочисленное значение.")
@@ -87,11 +86,10 @@ async def get_question_text(message: types.Message, state: FSMContext):
                              "Введите вопрос снова:")
         return
 
-    elif ">" in message.text or "<" in message.text:
-        await message.answer("❗️ Пожалуйста, не используйте символы \"<\" и \">\".", parse_mode='Markdown')
-        return
-
     else:
+        if ">" in message.text or "<" in message.text:
+            message.text = quote_html(message.text)
+
         data = await state.get_data()
         qe_id = data.get("qe_id")
         counter = data.get("counter")
@@ -106,11 +104,14 @@ async def get_question_text(message: types.Message, state: FSMContext):
             counter += 1
             if counter < questions_quantity:
                 await state.update_data(counter=counter)
-                await message.answer(f"📍 Укажите тип {counter + 1}-го вопроса:", reply_markup=question_type_kb)
+                await message.answer(f"✅ Открытый вопрос добавлен. Укажите <b>тип</b> {counter + 1}-го вопроса:",
+                                     reply_markup=question_type_kb)
                 await CreateQe.QuestionType.set()
             else:
+                await message.answer("✅ Открытый вопрос добавлен.")
                 questionnaire = await db_commands.select_questionnaire(qe_id=qe_id)
                 text = await parse_questions_text(questionnaire=questionnaire)
+                print(text)
                 await message.answer(text, reply_markup=questionnaire_approve_kb)
                 await CreateQe.CreateApprove.set()
         else:
@@ -151,11 +152,10 @@ async def get_closed_answer_text(message: types.Message, state: FSMContext):
                              f"символов. Введите вариант ответа снова:")
         return
 
-    elif ">" in message.text or "<" in message.text:
-        await message.answer("❗️ Пожалуйста, не используйте символы \"<\" и \">\".", parse_mode='Markdown')
-        return
-
     else:
+        if ">" in message.text or "<" in message.text:
+            message.text = quote_html(message.text)
+
         answer_option_id = generate_random_id(length=ANSWER_OPTION_ID_LENGTH)
         await db_commands.create_answer_option(answer_option_id=answer_option_id, question_id=question_id,
                                                answer_option_text=message.text)
@@ -172,11 +172,12 @@ async def get_closed_answer_text(message: types.Message, state: FSMContext):
 
             counter += 1
             if counter < questions_quantity:
-                await message.answer(f"✅ Закрытый вопрос добавлен. Укажите тип {counter + 1}-го вопроса:",
+                await message.answer(f"✅ Закрытый вопрос добавлен. Укажите <b>тип</b> {counter + 1}-го вопроса:",
                                      reply_markup=question_type_kb)
                 await state.update_data(counter=counter)
                 await CreateQe.QuestionType.set()
             else:
+                await message.answer("✅ Закрытый вопрос добавлен.")
                 questionnaire = await db_commands.select_questionnaire(qe_id=qe_id)
                 text = await parse_questions_text(questionnaire=questionnaire)
                 await message.answer(text, reply_markup=questionnaire_approve_kb)

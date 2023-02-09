@@ -49,9 +49,10 @@ async def create_answer_option(answer_option_id: str, question_id: str, answer_o
         pass
 
 
-async def create_user_answer(answer_id: str, qe_id: str, respondent_id: int, answer_text: str):
+async def create_user_answer(answer_id: str, qe_id: str, respondent_id: int, answer_text: str, answer_time: float):
     try:
-        user_answer = UserAnswer(answer_id=answer_id, qe_id=qe_id, respondent_id=respondent_id, answer_text=answer_text)
+        user_answer = UserAnswer(answer_id=answer_id, qe_id=qe_id, respondent_id=respondent_id, answer_text=answer_text,
+                                 answer_time=answer_time)
         await user_answer.create()
     except UniqueViolationError:
         print("Ответ уже существует!")

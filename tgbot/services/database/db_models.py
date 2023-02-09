@@ -67,6 +67,7 @@ class UserAnswer(BaseModel):
     respondent_id = Column(BigInteger)
 
     answer_text = Column(String(2000))
+    answer_time = Column(Float)
 
     query: sql.Select
 

@@ -91,9 +91,9 @@ async def pass_qe_approve(call: types.CallbackQuery, callback_data: dict, state:
                                              reply_markup=keyboard)
             await state.update_data(question_id=question.question_id)
             await PassQe.ClosedAnswer.set()
-        start_time = time.time()
-        await state.update_data(qe_id=questionnaire.qe_id, counter=0, start_time=start_time,
-                                answers_quantity=questionnaire.questions_quantity)
+        answer_start_time = time.time()
+        await state.update_data(qe_id=questionnaire.qe_id, counter=0, answer_start_time=answer_start_time,
+                                answers_quantity=questionnaire.questions_quantity, completion_time=0)
     elif approve == "cancel":
         await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
                                          text="❌ Прохождение опроса отменено.")
@@ -139,9 +139,9 @@ async def replay_qe_approve(call: types.CallbackQuery, callback_data: dict, stat
                 await state.update_data(question_id=question.question_id)
                 await PassQe.ClosedAnswer.set()
 
-            start_time = time.time()
-            await state.update_data(qe_id=questionnaire.qe_id, counter=0, start_time=start_time,
-                                    answers_quantity=questionnaire.questions_quantity)
+            answer_start_time = time.time()
+            await state.update_data(qe_id=questionnaire.qe_id, counter=0, answer_start_time=answer_start_time,
+                                    answers_quantity=questionnaire.questions_quantity, completion_time=0)
         else:
             await call.message.answer("🚫 Опрос не найден.", reply_markup=main_menu_kb)
 

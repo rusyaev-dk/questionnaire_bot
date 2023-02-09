@@ -2,6 +2,7 @@ import time
 
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
+from aiogram.utils.markdown import quote_html
 
 from tgbot.keyboards.qe_reply_kbs import main_menu_kb
 from tgbot.keyboards.qe_inline_kbs import parse_answer_options_kb, answers_approve_kb, \
@@ -18,16 +19,21 @@ async def get_open_answer(message: types.Message, state: FSMContext):
                              "Введите ответ снова:")
         return
 
-    elif ">" in message.text or "<" in message.text:
-        await message.answer("❗️ Пожалуйста, не используйте символы \"<\" и \">\".", parse_mode='Markdown')
-        return
-
     else:
+        if ">" in message.text or "<" in message.text:
+            message.text = quote_html(message.text)
+
         data = await state.get_data()
         qe_id = data.get("qe_id")
+        answer_start_time = data.get("answer_start_time")
+
         answer_id = generate_random_id(length=USER_ANSWER_ID_LENGTH)
+        answer_time = time.time() - answer_start_time
         await db_commands.create_user_answer(answer_id=answer_id, qe_id=qe_id, respondent_id=message.from_user.id,
-                                             answer_text=message.text)
+                                             answer_text=message.text, answer_time=answer_time)
+        completion_time = data.get("completion_time")
+        completion_time += answer_time
+
         counter = data.get("counter")
         answers_quantity = data.get("answers_quantity")
 
@@ -47,11 +53,9 @@ async def get_open_answer(message: types.Message, state: FSMContext):
                                      reply_markup=parse_answer_options_kb(options_quantity=len(answer_options)))
                 await state.update_data(question_id=question.question_id)
                 await PassQe.ClosedAnswer.set()
+            await state.update_data(answer_start_time=time.time(), completion_time=completion_time)
         else:
-            start_time = data.get("start_time")
-            completion_time = time.time() - start_time
             await state.update_data(completion_time=completion_time)
-
             text = "❇️ Опрос пройден.\n\n"
             answers = await db_commands.select_user_answers(respondent_id=message.from_user.id, qe_id=qe_id)
             text += await parse_answers_text(answers=answers, answers_quantity=answers_quantity)
@@ -77,8 +81,15 @@ async def get_closed_answer(call: types.CallbackQuery, callback_data: dict, stat
         position = int(answer[1])
 
         answer_text = answer_options[position].answer_option_text
+
+        answer_start_time = data.get("answer_start_time")
+        answer_time = time.time() - answer_start_time
+
+        completion_time = data.get("completion_time")
+        completion_time += answer_time
+
         await db_commands.create_user_answer(answer_id=answer_id, qe_id=qe_id, respondent_id=call.from_user.id,
-                                             answer_text=answer_text)
+                                             answer_text=answer_text, answer_time=answer_time)
         counter = data.get("counter")
         answers_quantity = data.get("answers_quantity")
 
@@ -101,9 +112,8 @@ async def get_closed_answer(call: types.CallbackQuery, callback_data: dict, stat
                                                  reply_markup=keyboard)
                 await state.update_data(question_id=question.question_id)
                 await PassQe.ClosedAnswer.set()
+            await state.update_data(answer_start_time=time.time(), completion_time=completion_time)
         else:
-            start_time = data.get("start_time")
-            completion_time = time.time() - start_time
             await state.update_data(completion_time=completion_time)
             text = "❇️ Опрос пройден.\n\n"
             answers = await db_commands.select_user_answers(respondent_id=call.from_user.id, qe_id=qe_id)
