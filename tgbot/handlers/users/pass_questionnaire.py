@@ -20,9 +20,6 @@ async def get_open_answer(message: types.Message, state: FSMContext):
         return
 
     else:
-        if ">" in message.text or "<" in message.text:
-            message.text = quote_html(message.text)
-
         data = await state.get_data()
         qe_id = data.get("qe_id")
         answer_start_time = data.get("answer_start_time")
@@ -44,12 +41,12 @@ async def get_open_answer(message: types.Message, state: FSMContext):
             question = questions[counter]
 
             if question.question_type == "open":
-                await message.answer(f"❓ {counter + 1}-й вопрос: {question.question_text}")
+                await message.answer(f"❓ {counter + 1}-й вопрос: {quote_html(question.question_text)}")
                 await PassQe.OpenAnswer.set()
             else:
                 answer_options = await db_commands.select_answer_options(question_id=question.question_id)
                 text = await parse_answer_options(answer_options=answer_options)
-                await message.answer(f"❓ {counter + 1}-й вопрос: {question.question_text}\n\n{text}",
+                await message.answer(f"❓ {counter + 1}-й вопрос: {quote_html(question.question_text)}\n\n{text}",
                                      reply_markup=parse_answer_options_kb(options_quantity=len(answer_options)))
                 await state.update_data(question_id=question.question_id)
                 await PassQe.ClosedAnswer.set()
@@ -101,14 +98,15 @@ async def get_closed_answer(call: types.CallbackQuery, callback_data: dict, stat
 
             if question.question_type == "open":
                 await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                                 text=f"❓ {counter + 1}-й вопрос: {question.question_text}")
+                                                 text=f"❓ {counter + 1}-й вопрос: {quote_html(question.question_text)}")
                 await PassQe.OpenAnswer.set()
             else:
                 answer_options = await db_commands.select_answer_options(question_id=question.question_id)
                 text = await parse_answer_options(answer_options=answer_options)
                 keyboard = parse_answer_options_kb(options_quantity=len(answer_options))
                 await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                                 text=f"❓ {counter + 1}-й вопрос: {question.question_text}\n\n{text}",
+                                                 text=f"❓ {counter + 1}-й вопрос: {quote_html(question.question_text)}"
+                                                      f"\n\n{text}",
                                                  reply_markup=keyboard)
                 await state.update_data(question_id=question.question_id)
                 await PassQe.ClosedAnswer.set()

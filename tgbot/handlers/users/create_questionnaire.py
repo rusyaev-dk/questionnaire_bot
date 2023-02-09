@@ -18,9 +18,13 @@ async def get_qe_title(message: types.Message, state: FSMContext):
                              "Введите название снова:")
         return
 
+    err_symbols = [":", "<", ">", "/", "\\", "*", "?", "|"]
+    for symbol in err_symbols:
+        if symbol in message.text:
+            await message.answer(f"😔 К сожалению, название опроса не может содержать символ "
+                                 f"<b>{quote_html(symbol)}</b>\nВведите название снова:")
+            return
     else:
-        if ">" in message.text or "<" in message.text:
-            message.text = quote_html(message.text)
         await state.update_data(title=message.text)
         await message.answer("🔸 Введите <b>количество</b> вопросов:")
         await CreateQe.QuestionsQuantity.set()
@@ -87,9 +91,6 @@ async def get_question_text(message: types.Message, state: FSMContext):
         return
 
     else:
-        if ">" in message.text or "<" in message.text:
-            message.text = quote_html(message.text)
-
         data = await state.get_data()
         qe_id = data.get("qe_id")
         counter = data.get("counter")
@@ -111,7 +112,6 @@ async def get_question_text(message: types.Message, state: FSMContext):
                 await message.answer("✅ Открытый вопрос добавлен.")
                 questionnaire = await db_commands.select_questionnaire(qe_id=qe_id)
                 text = await parse_questions_text(questionnaire=questionnaire)
-                print(text)
                 await message.answer(text, reply_markup=questionnaire_approve_kb)
                 await CreateQe.CreateApprove.set()
         else:
@@ -153,9 +153,6 @@ async def get_closed_answer_text(message: types.Message, state: FSMContext):
         return
 
     else:
-        if ">" in message.text or "<" in message.text:
-            message.text = quote_html(message.text)
-
         answer_option_id = generate_random_id(length=ANSWER_OPTION_ID_LENGTH)
         await db_commands.create_answer_option(answer_option_id=answer_option_id, question_id=question_id,
                                                answer_option_text=message.text)

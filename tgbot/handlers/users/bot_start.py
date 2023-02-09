@@ -6,6 +6,7 @@ from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import CommandStart
 from aiogram.types import ReplyKeyboardRemove
+from aiogram.utils.markdown import quote_html
 
 from tgbot.keyboards.qe_reply_kbs import main_menu_kb
 from tgbot.keyboards.qe_inline_kbs import replay_qe_approve_kb, replay_qe_approve_callback, \
@@ -38,7 +39,8 @@ async def deeplink_bot_start(message: types.Message, state: FSMContext):
             if questionnaire.is_active == "true":
                 passed = await db_commands.is_passed(respondent_id=message.from_user.id, qe_id=qe_id)
                 if passed:
-                    await message.answer(f"❗️ Вы уже прошли опрос <b>{questionnaire.title}</b>. В случае повторного "
+                    await message.answer(f"❗️ Вы уже прошли опрос <b>{questionnaire.title}</b>."
+                                         f" В случае повторного "
                                          f"прохождения предыдущие ответы будут <b>удалены</b>.",
                                          reply_markup=ReplyKeyboardRemove())
                     await message.answer("🔸 Пройти опрос заново?", reply_markup=replay_qe_approve_kb)
@@ -50,8 +52,8 @@ async def deeplink_bot_start(message: types.Message, state: FSMContext):
                         text = "• Вы первый респондент этого опроса!"
                     else:
                         text = f"• Среднее время прохождения: <b>{average_ct[0]:.1f}</b> {average_ct[1]}"
-                    await message.answer(f"• Опрос: <b>{questionnaire.title}</b>\n"
-                                         f"{text}", reply_markup=ReplyKeyboardRemove())
+                    await message.answer(f"• Опрос: <b>{questionnaire.title}</b>\n{text}",
+                                         reply_markup=ReplyKeyboardRemove())
                     await message.answer(f"🔸 Начать прохождение опроса?", reply_markup=pass_qe_approve_kb)
                     await state.update_data(qe_id=qe_id)
                     await PassQe.PassBeginApprove.set()
@@ -78,8 +80,8 @@ async def pass_qe_approve(call: types.CallbackQuery, callback_data: dict, state:
 
         if question.question_type == "open":
             await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                             text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n"
-                                                  f"❓ 1-й вопрос: {question.question_text}")
+                                             text=f"🔍 Вы начали прохождение опроса: {quote_html(questionnaire.title)}\n"
+                                                  f"❓ 1-й вопрос: {quote_html(question.question_text)}")
             await PassQe.OpenAnswer.set()
         else:
             answer_options = await db_commands.select_answer_options(question_id=question.question_id)
@@ -87,7 +89,8 @@ async def pass_qe_approve(call: types.CallbackQuery, callback_data: dict, state:
             keyboard = parse_answer_options_kb(options_quantity=len(answer_options))
             await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
                                              text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n"
-                                                  f"❓ 1-й вопрос: {question.question_text}\n\n{answer_options_text}",
+                                                  f"❓ 1-й вопрос: {quote_html(question.question_text)}\n"
+                                                  f"\n{quote_html(answer_options_text)}",
                                              reply_markup=keyboard)
             await state.update_data(question_id=question.question_id)
             await PassQe.ClosedAnswer.set()
@@ -126,7 +129,7 @@ async def replay_qe_approve(call: types.CallbackQuery, callback_data: dict, stat
             if question.question_type == "open":
                 await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
                                                  text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n"
-                                                      f"❓ 1-й вопрос: {question.question_text}")
+                                                      f"❓ 1-й вопрос: {quote_html(question.question_text)}")
                 await PassQe.OpenAnswer.set()
             else:
                 answer_options = await db_commands.select_answer_options(question_id=question.question_id)
@@ -134,7 +137,7 @@ async def replay_qe_approve(call: types.CallbackQuery, callback_data: dict, stat
                 keyboard = parse_answer_options_kb(options_quantity=len(answer_options))
                 await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
                                                  text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n"
-                                                      f"❓ 1-й вопрос: {question.question_text}\n\n{text}",
+                                                      f"❓ 1-й вопрос: {quote_html(question.question_text)}\n\n{text}",
                                                  reply_markup=keyboard)
                 await state.update_data(question_id=question.question_id)
                 await PassQe.ClosedAnswer.set()

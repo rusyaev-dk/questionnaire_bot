@@ -1,5 +1,7 @@
 import random, string
 
+from aiogram.utils.markdown import quote_html
+
 from tgbot.services.database import db_commands
 from tgbot.services.database.db_models import Questionnaire
 from tgbot.misc.dependences import ANSWER_LETTERS, BOT_USERNAME
@@ -27,12 +29,12 @@ async def parse_questions_text(questionnaire: Questionnaire):
     text = (f"🔍 Ваш опрос:\n\n"
             f"🔹 Название: <b>{questionnaire.title}</b>\n\n")
     for i in range(questionnaire.questions_quantity):
-        text += f"• {i + 1}-й вопрос: <b>{questions[i].question_text}</b>\n"
+        text += f"• {i + 1}-й вопрос: <b>{quote_html(questions[i].question_text)}</b>\n"
         if questions[i].question_type == "closed":
             answer_options = await db_commands.select_answer_options(question_id=questions[i].question_id)
             j = 0
             for answer_option in answer_options:
-                text += f"<b>{ANSWER_LETTERS[j]}:</b> {answer_option.answer_option_text}\n"
+                text += f"<b>{ANSWER_LETTERS[j]}:</b> {quote_html(answer_option.answer_option_text)}\n"
                 j += 1
     text += "\nСоздать опрос?"
     return text
@@ -45,7 +47,7 @@ async def parse_answers_text(answers: list, answers_quantity: int):
 
     text = "📄 Ваши ответы:\n"
     for i in range(answers_quantity):
-        text += f"• {i + 1}-й ответ: <b>{answers[i].answer_text}</b>\n"
+        text += f"• {i + 1}-й ответ: <b>{quote_html(answers[i].answer_text)}</b>\n"
     text += "\nОтправить ответы?"
     return text
 
@@ -57,7 +59,7 @@ async def parse_answer_options(answer_options: list):
 
     text = "📄 Варианты ответов:\n"
     for i in range(len(answer_options)):
-        text += f"<b>{ANSWER_LETTERS[i]}:</b> {answer_options[i].answer_option_text}\n"
+        text += f"<b>{ANSWER_LETTERS[i]}:</b> {quote_html(answer_options[i].answer_option_text)}\n"
     text += "\n⬇️ Выберите ответ:"
     return text
 
@@ -71,12 +73,12 @@ async def created_qe_info(questionnaire: Questionnaire):
 
     text = f"🔹 Название: <b>{questionnaire.title}</b>\n\n"
     for i in range(questionnaire.questions_quantity):
-        text += f"• {i + 1}-й вопрос: <b>{questions[i].question_text}</b>\n"
+        text += f"• {i + 1}-й вопрос: <b>{quote_html(questions[i].question_text)}</b>\n"
         if questions[i].question_type == "closed":
             answer_options = await db_commands.select_answer_options(question_id=questions[i].question_id)
             j = 0
             for answer_option in answer_options:
-                text += f"<b>{ANSWER_LETTERS[j]}:</b> {answer_option.answer_option_text}\n"
+                text += f"<b>{ANSWER_LETTERS[j]}:</b> {quote_html(answer_option.answer_option_text)}\n"
                 j += 1
     return text
 
@@ -133,7 +135,7 @@ async def passed_qe_info(respondent_id: int, questionnaire: Questionnaire, markd
     else:
         text = f"🔹 Название: <b>{questionnaire.title}</b>\n\n"
         for i in range(questionnaire.questions_quantity):
-            text += (f"• {i + 1}-й вопрос: <b>{questions[i].question_text}</b>\n"
-                     f"Ответ: <b>{answers[i].answer_text}</b>\n\n")
+            text += (f"• {i + 1}-й вопрос: <b>{quote_html(questions[i].question_text)}</b>\n"
+                     f"Ответ: <b>{quote_html(answers[i].answer_text)}</b>\n\n")
         text += f"• Дата прохождения: <b>{passed_qe.passed_at}</b>"
     return text

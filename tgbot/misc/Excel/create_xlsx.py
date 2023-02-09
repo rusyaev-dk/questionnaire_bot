@@ -56,7 +56,7 @@ async def create_xlsx_file(questionnaire: Questionnaire):
     col = sheet_2.column_dimensions[f'A']
     col.width = 50
 
-    path = rf'D:\PycharmProjects\{BOT_USERNAME}\tgbot\misc\Excel\xlsx_files\{qe_title}.xlsx'
+    path = rf'C:\Users\User\PycharmProjects\Questionnaire_UniBot\tgbot\misc\Excel\xlsx_files\{qe_title}.xlsx'
     book.save(path)
 
     return path
