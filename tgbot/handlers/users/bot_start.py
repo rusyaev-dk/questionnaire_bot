@@ -90,8 +90,7 @@ async def pass_qe_approve(call: types.CallbackQuery, callback_data: dict, state:
             await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
                                              text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n"
                                                   f"❓ 1-й вопрос: {quote_html(question.question_text)}\n"
-                                                  f"\n{quote_html(answer_options_text)}",
-                                             reply_markup=keyboard)
+                                                  f"\n{quote_html(answer_options_text)}", reply_markup=keyboard)
             await state.update_data(question_id=question.question_id)
             await PassQe.ClosedAnswer.set()
         answer_start_time = time.time()

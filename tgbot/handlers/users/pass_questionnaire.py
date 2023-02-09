@@ -132,6 +132,11 @@ async def answers_approve(call: types.CallbackQuery, callback_data: dict, state:
         await db_commands.increase_user_passed_qe_quantity(respondent_id=call.from_user.id)
         await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
                                          text="📮 Ваши ответы отправлены автору опроса.")
+
+        user = await db_commands.select_user(id=call.from_user.id)
+        if user.passed_qe_quantity % 5 == 0 and user.passed_qe_quantity != 0:
+            await call.answer(f"🎉 Отлично, Вы прошли уже {user.passed_qe_quantity} опросов!", show_alert=True)
+
         await call.message.answer("Главное меню:", reply_markup=main_menu_kb)
         await state.reset_data()
         await state.finish()
@@ -145,8 +150,7 @@ async def answers_approve(call: types.CallbackQuery, callback_data: dict, state:
 
 
 def register_pass_questionnaire(dp: Dispatcher):
-    text = types.ContentType.TEXT
-    dp.register_message_handler(get_open_answer, content_types=text, state=PassQe.OpenAnswer)
+    dp.register_message_handler(get_open_answer, content_types=types.ContentType.TEXT, state=PassQe.OpenAnswer)
     dp.register_callback_query_handler(get_closed_answer, answer_options_callback.filter(), state=PassQe.ClosedAnswer)
     dp.register_callback_query_handler(answers_approve, answers_approve_callback.filter(approve=answers_approves),
                                        state=PassQe.PassEndApprove)
