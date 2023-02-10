@@ -43,26 +43,6 @@ async def cancel_action(message: types.Message, state: FSMContext):
     await state.finish()
 
 
-@rate_limit(3)
-async def restart_bot(message: types.Message, state: FSMContext):
-    await db_commands.add_user(id=message.from_user.id, name=message.from_user.full_name)
-    state_name = await state.get_state()
-    if state_name:
-        if "CreateQe" in state_name:
-            await message.answer("❌ Создание опроса отменено. ♻️ Бот перезапущен.\nГлавное меню:",
-                                 reply_markup=main_menu_kb)
-        elif "PassQe" in state_name:
-            await message.answer("❌ Прохождение опроса отменено. ♻️ Бот перезапущен.\nГлавное меню:",
-                                 reply_markup=main_menu_kb)
-        else:
-            await message.answer("♻️ Бот перезапущен. Главное меню:", reply_markup=main_menu_kb)
-    else:
-        await message.answer("♻️ Бот перезапущен. Главное меню:", reply_markup=main_menu_kb)
-
-    await state.reset_data()
-    await state.finish()
-
-
 @rate_limit(2)
 async def get_help(message: types.Message):
     await message.answer("🛠 Если что-то пошло не так, нажмите <b>/restart</b>, чтобы перезапустить бота. "
@@ -81,7 +61,6 @@ async def get_bot_statistics(message: types.Message):
 def register_additional_commands(dp: Dispatcher):
     dp.register_message_handler(get_main_menu, commands=["menu"], state="*")
     dp.register_message_handler(cancel_action, commands=["cancel"], state="*")
-    dp.register_message_handler(restart_bot, commands=["restart"], state="*")
     dp.register_message_handler(get_help, commands=["help"], state="*")
 
     dp.register_message_handler(get_bot_statistics, commands=["statistics"], is_admin=True, state="*")

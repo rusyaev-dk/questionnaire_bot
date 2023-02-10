@@ -16,7 +16,7 @@ async def add_user(id: int, name: str):
         return 0
     except UniqueViolationError:
         print("Пользователь уже есть в базе данных!")
-        pass
+        return -1
 
 
 async def create_questionnaire(qe_id: str, creator_id: int, title: str, questions_quantity: int):
@@ -265,6 +265,11 @@ async def increase_link_clicks(creator_id: int):
     user = await select_user(id=creator_id)
     link_clicks = user.link_clicks
     await user.update(link_clicks=link_clicks + 1).apply()
+
+
+async def update_user_email(user_id: int, email: str):
+    user = await select_user(id=user_id)
+    await user.update(email=email).apply()
 
 
 """ ____________Check functions____________ """

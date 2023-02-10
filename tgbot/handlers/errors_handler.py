@@ -46,8 +46,8 @@ async def error_logging(update, exception):
 
     if isinstance(exception, CantParseEntities):
         logging.exception(f'CantParseEntities: {exception.args}')
-        await Update.get_current().message.answer("❗️ Пожалуйста, не используйте символы \"<\" и \">\".",
-                                                  parse_mode='Markdown')
+        # await Update.get_current().message.answer("❗️ Пожалуйста, не используйте символы \"<\" и \">\".",
+        #                                           parse_mode='Markdown')
         return True
 
     if isinstance(exception, RetryAfter):

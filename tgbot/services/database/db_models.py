@@ -10,6 +10,7 @@ class User(BaseModel):
 
     id = Column(BigInteger, primary_key=True)
     name = Column(String(70))
+    email = Column(String(100), default=None)
 
     created_qe_quantity = Column(Integer, default=0)
     passed_qe_quantity = Column(Integer, default=0)

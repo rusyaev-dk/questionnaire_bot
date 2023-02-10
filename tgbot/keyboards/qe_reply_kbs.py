@@ -1,5 +1,14 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 
+email_accept_kb = ReplyKeyboardMarkup(
+    resize_keyboard=True,
+    keyboard=[
+        [
+            KeyboardButton(text="❌ Продолжить без почты")
+        ]
+    ]
+)
+
 main_menu_kb = ReplyKeyboardMarkup(
     row_width=2,
     resize_keyboard=True,
@@ -12,8 +21,7 @@ main_menu_kb = ReplyKeyboardMarkup(
             KeyboardButton(text="🗃 Пройденные опросы")
         ],
         [
-            KeyboardButton(text="📊 Моя статистика")
-            # KeyboardButton(text="🤖 О боте")
+            KeyboardButton(text="🔖 Мой профиль")
         ]
     ]
 )

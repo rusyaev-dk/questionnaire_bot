@@ -138,15 +138,15 @@ async def answers_approve(call: types.CallbackQuery, callback_data: dict, state:
             await call.answer(f"🎉 Отлично, Вы прошли уже {user.passed_qe_quantity} опросов!", show_alert=True)
 
         await call.message.answer("Главное меню:", reply_markup=main_menu_kb)
-        await state.reset_data()
-        await state.finish()
+
     elif approve == "delete":
         await db_commands.delete_user_answers(respondent_id=call.from_user.id, qe_id=qe_id)
         await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
                                          text="❌ Ваши ответы удалены.")
         await call.message.answer("Главное меню:", reply_markup=main_menu_kb)
-        await state.reset_data()
-        await state.finish()
+
+    await state.reset_data()
+    await state.finish()
 
 
 def register_pass_questionnaire(dp: Dispatcher):

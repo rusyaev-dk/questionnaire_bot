@@ -1,6 +1,10 @@
 from aiogram.dispatcher.filters.state import StatesGroup, State
 
 
+class UserEmail(StatesGroup):
+    GetEmail = State()
+
+
 class CreateQe(StatesGroup):
     Title = State()
     QuestionsQuantity = State()

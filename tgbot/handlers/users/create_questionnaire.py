@@ -195,16 +195,15 @@ async def questionnaire_approve(call: types.CallbackQuery, callback_data: dict, 
                                          f"📎 Ссылка для прохождения: <b>{link}</b>",
                                          reply_markup=share_link_kb(link), disable_web_page_preview=True)
         await call.message.answer("Главное меню:", reply_markup=main_menu_kb)
-        await state.reset_data()
-        await state.finish()
+
     elif approve == "delete":
         await db_commands.delete_questionnaire(qe_id=qe_id)
         await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
                                          text="❌ Создание опроса отменено.")
         await call.message.answer("Главное меню:",
                                   reply_markup=main_menu_kb)
-        await state.reset_data()
-        await state.finish()
+    await state.reset_data()
+    await state.finish()
 
 
 def register_create_questionnaire(dp: Dispatcher):

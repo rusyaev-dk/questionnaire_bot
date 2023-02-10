@@ -5,17 +5,8 @@ from tgbot.services.database import db_commands
 from tgbot.misc.dependences import ANSWER_LETTERS
 from tgbot.services.service_functions import parse_share_link
 
+
 question_type_callback = CallbackData("action", "question_type")
-qe_approve_callback = CallbackData("action", "approve")
-answers_approve_callback = CallbackData("action", "approve")
-qe_list_callback = CallbackData("action", "qe_id")
-statistics_kb_callback = CallbackData("action", "act")
-file_type_callback = CallbackData("action", "f_type")
-delete_qe_approve_callback = CallbackData("action", "approve")
-replay_qe_approve_callback = CallbackData("action", "approve")
-answer_options_callback = CallbackData("action", "answer")
-
-
 question_types = ["open", "closed", "cancel"]
 question_type_kb = InlineKeyboardMarkup(
     row_width=2,
@@ -30,6 +21,8 @@ question_type_kb = InlineKeyboardMarkup(
     ]
 )
 
+
+qe_approve_callback = CallbackData("action", "approve")
 qe_approves = ["create", "delete"]
 questionnaire_approve_kb = InlineKeyboardMarkup(
     row_width=2,
@@ -41,6 +34,8 @@ questionnaire_approve_kb = InlineKeyboardMarkup(
     ]
 )
 
+
+answers_approve_callback = CallbackData("action", "approve")
 answers_approves = ["send", "delete"]
 answers_approve_kb = InlineKeyboardMarkup(
     row_width=2,
@@ -53,6 +48,9 @@ answers_approve_kb = InlineKeyboardMarkup(
         ]
     ]
 )
+
+
+qe_list_callback = CallbackData("action", "qe_id")
 
 
 async def qe_list_kb(questionnaires: list):
@@ -73,6 +71,9 @@ async def qe_list_kb(questionnaires: list):
 
 
 statistics_acts = ["step_back", "main_menu", "get_file", "freeze_qe", "resume_qe", "delete", "share_link"]
+
+
+statistics_kb_callback = CallbackData("action", "act")
 
 
 async def created_qe_statistics_kb(is_active: str, qe_id: str):
@@ -100,6 +101,7 @@ async def created_qe_statistics_kb(is_active: str, qe_id: str):
     return keyboard
 
 
+file_type_callback = CallbackData("action", "f_type")
 f_types = ["pdf", "xlsx", "step_back", "main_menu"]
 file_type_kb = InlineKeyboardMarkup(
     row_width=2,
@@ -119,6 +121,7 @@ file_type_kb = InlineKeyboardMarkup(
 )
 
 
+delete_qe_approve_callback = CallbackData("action", "approve")
 delete_qe_approves = ["delete", "cancel"]
 delete_qe_approve_kb = InlineKeyboardMarkup(
     row_width=2,
@@ -165,6 +168,8 @@ pass_qe_approve_kb = InlineKeyboardMarkup(
     ]
 )
 
+
+replay_qe_approve_callback = CallbackData("action", "approve")
 replay_approves = ["cancel", "replay"]
 replay_qe_approve_kb = InlineKeyboardMarkup(
     row_width=2,
@@ -176,6 +181,9 @@ replay_qe_approve_kb = InlineKeyboardMarkup(
         ]
     ]
 )
+
+
+answer_options_callback = CallbackData("action", "answer")
 
 
 def parse_answer_options_kb(options_quantity: int):
@@ -192,3 +200,14 @@ def parse_answer_options_kb(options_quantity: int):
 
     keyboard.row(buttons[-1])
     return keyboard
+
+
+change_email_callback = CallbackData("action", "change")
+change_email_kb = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(text="Сменить электронную почту",
+                                 callback_data=change_email_callback.new(change="true"))
+        ]
+    ]
+)

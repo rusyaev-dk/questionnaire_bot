@@ -15,7 +15,7 @@ class ThrottlingMiddleware(BaseMiddleware):
     def __init__(self, limit=DEFAULT_RATE_LIMIT, key_prefix="antiflood_"):
         self.rate_limit = limit
         self.prefix = key_prefix
-        self.service_text = ('⚠️ <b>Пожалуйста, не используйте команды слишком часто!</b>\n'
+        self.service_text = ('⚠️ <b>Пожалуйста, не отправляйте запросы слишком часто!</b>\n'
                              'Доступ к боту будет возобновлён через <b>5</b> секунд.')
         super(ThrottlingMiddleware, self).__init__()
 

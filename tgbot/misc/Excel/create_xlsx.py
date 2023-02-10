@@ -1,7 +1,6 @@
 import openpyxl
 from openpyxl.styles import Alignment
 
-from tgbot.misc.dependences import BOT_USERNAME
 from tgbot.services.database import db_commands
 from tgbot.services.database.db_models import Questionnaire
 from tgbot.services.service_functions import get_average_completion_time

@@ -2,7 +2,7 @@ from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.types import ReplyKeyboardRemove
 
-from tgbot.keyboards.qe_inline_kbs import qe_list_kb
+from tgbot.keyboards.qe_inline_kbs import qe_list_kb, change_email_kb
 from tgbot.misc.dependences import CREATED_GUIDE_MESSAGE, BOT_INFO_MESSAGE, PASSED_GUIDE_MESSAGE
 from tgbot.misc.states import CreatedQeStatistics, PassedQeStatistics, CreateQe
 from tgbot.misc.throttling_function import rate_limit
@@ -49,7 +49,7 @@ async def user_passed_questionnaires(message: types.Message, state: FSMContext):
 
 
 @rate_limit(2)
-async def user_statistics(message: types.Message):
+async def user_profile(message: types.Message):
     user = await db_commands.select_user(id=message.from_user.id)
     created_qes = await db_commands.select_user_created_qes(creator_id=message.from_user.id)
 
@@ -67,22 +67,23 @@ async def user_statistics(message: types.Message):
     else:
         average_pass_percent = 0
 
-    await message.answer("📊 Ваша статистика:\n"
+    await message.answer("🔖 Ваш профиль:\n"
+                         f"• Контактная информация: <b>{user.email}</b>\n"
+                         "\n📊 Ваша статистика:\n"
                          f"• Создано опросов: <b>{user.created_qe_quantity}</b>\n"
                          f"• Пройдено опросов: <b>{user.passed_qe_quantity}</b>\n"
                          f"• Всего опрошено: <b>{total_respondents}</b> чел.\n"
                          f"• По Вашим ссылкам перешло: <b>{user.link_clicks}</b> чел.\n"
-                         f"• Процент прохождения Ваших опросов: <b>{average_pass_percent:.1f}%</b>")
+                         f"• Процент прохождения Ваших опросов: <b>{average_pass_percent:.1f}%</b>",
+                         reply_markup=change_email_kb)
 
 
-@rate_limit(limit=2, key=2)
-async def developer_info(message: types.Message):
-    await message.answer(text=BOT_INFO_MESSAGE)
+# async def change_user_email(call: types.CallbackQuery, callback_data: dict, state: FSMContext):
+#     await call.
 
 
 def register_main_menu(dp: Dispatcher):
     dp.register_message_handler(create_questionnaire, text="📝 Создать опрос", state="*")
     dp.register_message_handler(user_created_questionnaires, text="🗂 Созданные опросы", state="*")
     dp.register_message_handler(user_passed_questionnaires, text="🗃 Пройденные опросы", state="*")
-    dp.register_message_handler(user_statistics, text="📊 Моя статистика", state="*")
-    dp.register_message_handler(developer_info, text="🤖 О боте", state="*")
+    dp.register_message_handler(user_profile, text="🔖 Мой профиль", state="*")
