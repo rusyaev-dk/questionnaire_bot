@@ -41,16 +41,34 @@ async def get_open_answer(message: types.Message, state: FSMContext):
             question = questions[counter]
 
             if question.question_type == "open":
-                await message.answer(f"❓ {counter + 1}-й вопрос: {quote_html(question.question_text)}")
+                if question.question_photo_id:
+                    if question.question_text:
+                        caption = f"❓ {counter + 1}-й вопрос: {quote_html(question.question_text)}"
+                    else:
+                        caption = None
+                    await message.answer_photo(photo=question.question_photo_id, caption=caption)
+                else:
+                    await message.answer(f"❓ {counter + 1}-й вопрос: {quote_html(question.question_text)}")
                 await PassQe.OpenAnswer.set()
             else:
                 answer_options = await db_commands.select_answer_options(question_id=question.question_id)
                 text = await parse_answer_options(answer_options=answer_options)
-                await message.answer(f"❓ {counter + 1}-й вопрос: {quote_html(question.question_text)}\n\n{text}",
-                                     reply_markup=parse_answer_options_kb(options_quantity=len(answer_options)))
-                await state.update_data(question_id=question.question_id)
+                keyboard = parse_answer_options_kb(options_quantity=len(answer_options))
+                if question.question_photo_id:
+                    if question.question_text:
+                        caption = f"❓ {counter + 1}-й вопрос: {quote_html(question.question_text)}\n\n{text}"
+                    else:
+                        caption = None
+                    await message.answer_photo(photo=question.question_photo_id, caption=caption, reply_markup=keyboard)
+                else:
+                    await message.answer(f"❓ {counter + 1}-й вопрос: {quote_html(question.question_text)}\n\n{text}",
+                                         reply_markup=keyboard)
+
                 await PassQe.ClosedAnswer.set()
+                await state.update_data(question_id=question.question_id)
+
             await state.update_data(answer_start_time=time.time(), completion_time=completion_time)
+
         else:
             await state.update_data(completion_time=completion_time)
             text = "❇️ Опрос пройден.\n\n"
@@ -97,27 +115,40 @@ async def get_closed_answer(call: types.CallbackQuery, callback_data: dict, stat
             question = questions[counter]
 
             if question.question_type == "open":
-                await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                                 text=f"❓ {counter + 1}-й вопрос: {quote_html(question.question_text)}")
+                if question.question_photo_id:
+                    if question.question_text:
+                        caption = f"❓ {counter + 1}-й вопрос: {quote_html(question.question_text)}"
+                    else:
+                        caption = None
+                    await call.message.answer_photo(photo=question.question_photo_id, caption=caption)
+                else:
+                    await call.message.answer(f"❓ {counter + 1}-й вопрос: {quote_html(question.question_text)}")
                 await PassQe.OpenAnswer.set()
             else:
                 answer_options = await db_commands.select_answer_options(question_id=question.question_id)
                 text = await parse_answer_options(answer_options=answer_options)
                 keyboard = parse_answer_options_kb(options_quantity=len(answer_options))
-                await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                                 text=f"❓ {counter + 1}-й вопрос: {quote_html(question.question_text)}"
-                                                      f"\n\n{text}",
-                                                 reply_markup=keyboard)
-                await state.update_data(question_id=question.question_id)
+                if question.question_photo_id:
+                    if question.question_text:
+                        caption = f"❓ {counter + 1}-й вопрос: {quote_html(question.question_text)}\n\n{text}"
+                    else:
+                        caption = None
+                    await call.message.answer_photo(photo=question.question_photo_id, caption=caption,
+                                                    reply_markup=keyboard)
+                else:
+                    await call.message.answer(f"❓ {counter + 1}-й вопрос: {quote_html(question.question_text)}\n\n"
+                                              f"{text}", reply_markup=keyboard)
                 await PassQe.ClosedAnswer.set()
+                await state.update_data(question_id=question.question_id)
+
             await state.update_data(answer_start_time=time.time(), completion_time=completion_time)
         else:
             await state.update_data(completion_time=completion_time)
             text = "❇️ Опрос пройден.\n\n"
             answers = await db_commands.select_user_answers(respondent_id=call.from_user.id, qe_id=qe_id)
             text += await parse_answers_text(answers=answers, answers_quantity=answers_quantity)
-            await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                             text=text, reply_markup=answers_approve_kb)
+            await call.bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
+            await call.message.answer(text=text, reply_markup=answers_approve_kb)
             await PassQe.PassEndApprove.set()
 
 

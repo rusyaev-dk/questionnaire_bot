@@ -119,6 +119,41 @@ async def get_question_text(message: types.Message, state: FSMContext):
             await CreateQe.AnswerOptionsQuantity.set()
 
 
+async def get_question_with_media(message: types.Message, state: FSMContext):
+    if message.caption and len(message.caption) > QUESTION_LENGTH:
+        await message.answer(f"❗ <b>Длина</b> вопроса должна составлять не более <b>{QUESTION_LENGTH}</b> символов. "
+                             "Введите вопрос снова:")
+        return
+
+    else:
+        data = await state.get_data()
+        qe_id = data.get("qe_id")
+        counter = data.get("counter")
+        questions_quantity = data.get("questions_quantity")
+
+        question_type = data.get("question_type")
+        question_id = generate_random_id(length=QUESTION_ID_LENGTH)
+        await state.update_data(question_id=question_id)
+        await db_commands.create_question(question_id=question_id, qe_id=qe_id, question_type=question_type,
+                                          question_text=message.caption, question_photo_id=message.photo[-1].file_id)
+        if question_type == "open":
+            counter += 1
+            if counter < questions_quantity:
+                await state.update_data(counter=counter)
+                await message.answer(f"✅ Открытый вопрос добавлен. Укажите <b>тип</b> {counter + 1}-го вопроса:",
+                                     reply_markup=question_type_kb)
+                await CreateQe.QuestionType.set()
+            else:
+                await message.answer("✅ Открытый вопрос добавлен.")
+                questionnaire = await db_commands.select_questionnaire(qe_id=qe_id)
+                text = await parse_questions_text(questionnaire=questionnaire)
+                await message.answer(text, reply_markup=questionnaire_approve_kb)
+                await CreateQe.CreateApprove.set()
+        else:
+            await message.answer("🔸 Введите <b>количество</b> вариантов <b>ответа</b>:")
+            await CreateQe.AnswerOptionsQuantity.set()
+
+
 async def get_closed_answers_quantity(message: types.Message, state: FSMContext):
     try:
         answers_quantity = int(message.text)
@@ -208,12 +243,15 @@ async def questionnaire_approve(call: types.CallbackQuery, callback_data: dict, 
 
 def register_create_questionnaire(dp: Dispatcher):
     text = types.ContentType.TEXT
+    media = [types.ContentType.TEXT, types.ContentType.PHOTO]
+
     dp.register_message_handler(get_qe_title, content_types=text, state=CreateQe.Title)
     dp.register_message_handler(get_questions_quantity, content_types=text, state=CreateQe.QuestionsQuantity)
     dp.register_callback_query_handler(select_question_type, question_type_callback.filter(question_type=question_types),
                                        state=CreateQe.QuestionType)
 
     dp.register_message_handler(get_question_text, content_types=text, state=CreateQe.QuestionText)
+    dp.register_message_handler(get_question_with_media, content_types=media, state=CreateQe.QuestionText)
     dp.register_message_handler(get_closed_answers_quantity, content_types=text, state=CreateQe.AnswerOptionsQuantity)
     dp.register_message_handler(get_closed_answer_text, content_types=text, state=CreateQe.AnswerOptionText)
 

@@ -44,7 +44,8 @@ class Question(BaseModel):
     qe_id = Column(String(10))
 
     question_type = Column(String(10))
-    question_text = Column(String(350))
+    question_text = Column(String(350), default=None)
+    question_photo_id = Column(String(100), default=None)
 
     query: sql.Select
 

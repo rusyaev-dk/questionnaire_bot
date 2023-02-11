@@ -29,7 +29,12 @@ async def parse_questions_text(questionnaire: Questionnaire):
     text = (f"🔍 Ваш опрос:\n\n"
             f"🔹 Название: <b>{questionnaire.title}</b>\n\n")
     for i in range(questionnaire.questions_quantity):
-        text += f"• {i + 1}-й вопрос: <b>{quote_html(questions[i].question_text)}</b>\n"
+        question_text = quote_html(questions[i].question_text)
+        if question_text is None and questions[i].question_photo_id:
+            question_text = "Изображение"
+        elif question_text and questions[i].question_photo_id:
+            question_text = f"Изображение с описанием: {question_text}"
+        text += f"• {i + 1}-й вопрос: <b>{question_text}</b>\n"
         if questions[i].question_type == "closed":
             answer_options = await db_commands.select_answer_options(question_id=questions[i].question_id)
             j = 0
@@ -73,7 +78,12 @@ async def created_qe_info(questionnaire: Questionnaire):
 
     text = f"🔹 Название: <b>{questionnaire.title}</b>\n\n"
     for i in range(questionnaire.questions_quantity):
-        text += f"• {i + 1}-й вопрос: <b>{quote_html(questions[i].question_text)}</b>\n"
+        question_text = quote_html(questions[i].question_text)
+        if question_text is None and questions[i].question_photo_id:
+            question_text = "Изображение"
+        elif question_text and questions[i].question_photo_id:
+            question_text = f"Изображение с описанием: {question_text}"
+        text += f"• {i + 1}-й вопрос: <b>{question_text}</b>\n"
         if questions[i].question_type == "closed":
             answer_options = await db_commands.select_answer_options(question_id=questions[i].question_id)
             j = 0
