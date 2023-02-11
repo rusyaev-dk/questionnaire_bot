@@ -1,10 +1,11 @@
-import random, string
+import random
+import string
 
 from aiogram.utils.markdown import quote_html
 
+from tgbot.misc.dependences import ANSWER_LETTERS, BOT_USERNAME
 from tgbot.services.database import db_commands
 from tgbot.services.database.db_models import Questionnaire
-from tgbot.misc.dependences import ANSWER_LETTERS, BOT_USERNAME
 
 
 def generate_random_id(length: int):
@@ -27,14 +28,16 @@ async def parse_questions_text(questionnaire: Questionnaire):
 
     questions = await db_commands.select_questions(qe_id=questionnaire.qe_id)
     text = (f"🔍 Ваш опрос:\n\n"
-            f"🔹 Название: <b>{questionnaire.title}</b>\n\n")
+            f"🔹 Название: <b>{questionnaire.title}</b>\n")
     for i in range(questionnaire.questions_quantity):
-        question_text = quote_html(questions[i].question_text)
+
+        question_text = questions[i].question_text
         if question_text is None and questions[i].question_photo_id:
             question_text = "Изображение"
         elif question_text and questions[i].question_photo_id:
-            question_text = f"Изображение с описанием: {question_text}"
-        text += f"• {i + 1}-й вопрос: <b>{question_text}</b>\n"
+            question_text = f"Изображение с описанием: {quote_html(question_text)}"
+
+        text += f"\n• {i + 1}-й вопрос: <b>{quote_html(question_text)}</b>\n"
         if questions[i].question_type == "closed":
             answer_options = await db_commands.select_answer_options(question_id=questions[i].question_id)
             j = 0
@@ -76,14 +79,16 @@ async def created_qe_info(questionnaire: Questionnaire):
 
     questions = await db_commands.select_questions(qe_id=questionnaire.qe_id)
 
-    text = f"🔹 Название: <b>{questionnaire.title}</b>\n\n"
+    text = f"🔹 Название: <b>{questionnaire.title}</b>\n"
     for i in range(questionnaire.questions_quantity):
-        question_text = quote_html(questions[i].question_text)
+
+        question_text = questions[i].question_text
         if question_text is None and questions[i].question_photo_id:
             question_text = "Изображение"
         elif question_text and questions[i].question_photo_id:
-            question_text = f"Изображение с описанием: {question_text}"
-        text += f"• {i + 1}-й вопрос: <b>{question_text}</b>\n"
+            question_text = f"Изображение с описанием: {quote_html(question_text)}"
+
+        text += f"\n• {i + 1}-й вопрос: <b>{quote_html(question_text)}</b>\n"
         if questions[i].question_type == "closed":
             answer_options = await db_commands.select_answer_options(question_id=questions[i].question_id)
             j = 0
@@ -145,7 +150,14 @@ async def passed_qe_info(respondent_id: int, questionnaire: Questionnaire, markd
     else:
         text = f"🔹 Название: <b>{questionnaire.title}</b>\n\n"
         for i in range(questionnaire.questions_quantity):
-            text += (f"• {i + 1}-й вопрос: <b>{quote_html(questions[i].question_text)}</b>\n"
+
+            question_text = questions[i].question_text
+            if question_text is None and questions[i].question_photo_id:
+                question_text = "Изображение"
+            elif question_text and questions[i].question_photo_id:
+                question_text = f"Изображение с описанием: {quote_html(question_text)}"
+
+            text += (f"• {i + 1}-й вопрос: <b>{quote_html(question_text)}</b>\n"
                      f"Ответ: <b>{quote_html(answers[i].answer_text)}</b>\n\n")
         text += f"• Дата прохождения: <b>{passed_qe.passed_at}</b>"
     return text

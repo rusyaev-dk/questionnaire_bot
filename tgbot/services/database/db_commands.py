@@ -101,6 +101,11 @@ async def select_questions(qe_id: str):
     return questions
 
 
+async def select_question(question_id: str):
+    question = await Question.query.where(Question.question_id == question_id).gino.first()
+    return question
+
+
 async def select_answer_options(question_id: str):
     answer_options = await AnswerOption.query.where(AnswerOption.question_id == question_id).gino.all()
     return answer_options

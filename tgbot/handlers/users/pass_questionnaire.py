@@ -45,7 +45,7 @@ async def get_open_answer(message: types.Message, state: FSMContext):
                     if question.question_text:
                         caption = f"❓ {counter + 1}-й вопрос: {quote_html(question.question_text)}"
                     else:
-                        caption = None
+                        caption = f"❓ {counter + 1}-й вопрос: описание отсутствует"
                     await message.answer_photo(photo=question.question_photo_id, caption=caption)
                 else:
                     await message.answer(f"❓ {counter + 1}-й вопрос: {quote_html(question.question_text)}")
@@ -58,7 +58,7 @@ async def get_open_answer(message: types.Message, state: FSMContext):
                     if question.question_text:
                         caption = f"❓ {counter + 1}-й вопрос: {quote_html(question.question_text)}\n\n{text}"
                     else:
-                        caption = None
+                        caption = f"❓ {counter + 1}-й вопрос: описание отсутствует"
                     await message.answer_photo(photo=question.question_photo_id, caption=caption, reply_markup=keyboard)
                 else:
                     await message.answer(f"❓ {counter + 1}-й вопрос: {quote_html(question.question_text)}\n\n{text}",
@@ -108,9 +108,22 @@ async def get_closed_answer(call: types.CallbackQuery, callback_data: dict, stat
         counter = data.get("counter")
         answers_quantity = data.get("answers_quantity")
 
+        previous_question = await db_commands.select_question(question_id=question_id)
+        answer_options = await db_commands.select_answer_options(question_id=question_id)
+        text = (f"❓ {counter + 1}-й вопрос: {quote_html(previous_question.question_text)}\n\n"
+                f"{(await parse_answer_options(answer_options))[:-19]}")
+
+        if previous_question.question_photo_id:
+            await call.bot.edit_message_caption(chat_id=call.from_user.id, message_id=call.message.message_id,
+                                                caption=text)
+        else:
+            await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
+                                             text=text, reply_markup=None)
+
         counter += 1
         if counter < answers_quantity:
             await state.update_data(counter=counter)
+
             questions = await db_commands.select_questions(qe_id=qe_id)
             question = questions[counter]
 
@@ -119,25 +132,26 @@ async def get_closed_answer(call: types.CallbackQuery, callback_data: dict, stat
                     if question.question_text:
                         caption = f"❓ {counter + 1}-й вопрос: {quote_html(question.question_text)}"
                     else:
-                        caption = None
+                        caption = f"❓ {counter + 1}-й вопрос: описание отсутствует"
                     await call.message.answer_photo(photo=question.question_photo_id, caption=caption)
                 else:
                     await call.message.answer(f"❓ {counter + 1}-й вопрос: {quote_html(question.question_text)}")
                 await PassQe.OpenAnswer.set()
             else:
                 answer_options = await db_commands.select_answer_options(question_id=question.question_id)
-                text = await parse_answer_options(answer_options=answer_options)
+                answer_options_text = await parse_answer_options(answer_options=answer_options)
                 keyboard = parse_answer_options_kb(options_quantity=len(answer_options))
                 if question.question_photo_id:
                     if question.question_text:
-                        caption = f"❓ {counter + 1}-й вопрос: {quote_html(question.question_text)}\n\n{text}"
+                        caption = (f"❓ {counter + 1}-й вопрос: {quote_html(question.question_text)}\n"
+                                   f"\n{answer_options_text}")
                     else:
-                        caption = None
+                        caption = f"❓ {counter + 1}-й вопрос: описание отсутствует"
                     await call.message.answer_photo(photo=question.question_photo_id, caption=caption,
                                                     reply_markup=keyboard)
                 else:
                     await call.message.answer(f"❓ {counter + 1}-й вопрос: {quote_html(question.question_text)}\n\n"
-                                              f"{text}", reply_markup=keyboard)
+                                              f"{answer_options_text}", reply_markup=keyboard)
                 await PassQe.ClosedAnswer.set()
                 await state.update_data(question_id=question.question_id)
 
@@ -147,7 +161,7 @@ async def get_closed_answer(call: types.CallbackQuery, callback_data: dict, stat
             text = "❇️ Опрос пройден.\n\n"
             answers = await db_commands.select_user_answers(respondent_id=call.from_user.id, qe_id=qe_id)
             text += await parse_answers_text(answers=answers, answers_quantity=answers_quantity)
-            await call.bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
+           # await call.bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
             await call.message.answer(text=text, reply_markup=answers_approve_kb)
             await PassQe.PassEndApprove.set()
 

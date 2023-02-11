@@ -175,7 +175,7 @@ async def pass_qe_approve(call: types.CallbackQuery, callback_data: dict, state:
                 if question.question_text:
                     caption = f"❓ 1-й вопрос: {quote_html(question.question_text)}"
                 else:
-                    caption = None
+                    caption = "❓ 1-й вопрос: описание отсутствует"
 
                 await call.message.answer_photo(photo=question.question_photo_id, caption=caption)
             else:
@@ -194,9 +194,9 @@ async def pass_qe_approve(call: types.CallbackQuery, callback_data: dict, state:
                                                  text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n")
 
                 if question.question_text:
-                    caption = f"❓ 1-й вопрос: {quote_html(question.question_text)}\n\n{quote_html(answer_options_text)}"
+                    caption = f"❓ 1-й вопрос: {quote_html(question.question_text)}\n\n{answer_options_text}"
                 else:
-                    caption = None
+                    caption = "❓ 1-й вопрос: описание отсутствует"
 
                 await call.message.answer_photo(photo=question.question_photo_id, caption=caption,
                                                 reply_markup=keyboard)
@@ -205,7 +205,7 @@ async def pass_qe_approve(call: types.CallbackQuery, callback_data: dict, state:
                 await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
                                                  text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n"
                                                       f"❓ 1-й вопрос: {quote_html(question.question_text)}\n"
-                                                      f"\n{quote_html(answer_options_text)}", reply_markup=keyboard)
+                                                      f"\n{answer_options_text}", reply_markup=keyboard)
             await PassQe.ClosedAnswer.set()
             await state.update_data(question_id=question.question_id)
 
@@ -249,7 +249,7 @@ async def replay_qe_approve(call: types.CallbackQuery, callback_data: dict, stat
                     if question.question_text:
                         caption = f"❓ 1-й вопрос: {quote_html(question.question_text)}"
                     else:
-                        caption = None
+                        caption = "❓ 1-й вопрос: описание отсутствует"
 
                     await call.message.answer_photo(photo=question.question_photo_id, caption=caption)
                 else:
@@ -267,9 +267,9 @@ async def replay_qe_approve(call: types.CallbackQuery, callback_data: dict, stat
                     await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
                                                      text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n")
                     if question.question_text:
-                        caption = f"❓ 1-й вопрос: {quote_html(question.question_text)}\n\n{quote_html(answer_options_text)}"
+                        caption = f"❓ 1-й вопрос: {quote_html(question.question_text)}\n\n{answer_options_text}"
                     else:
-                        caption = None
+                        caption = "❓ 1-й вопрос: описание отсутствует"
 
                     await call.message.answer_photo(photo=question.question_photo_id, caption=caption,
                                                     reply_markup=keyboard)
@@ -277,7 +277,7 @@ async def replay_qe_approve(call: types.CallbackQuery, callback_data: dict, stat
                     await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
                                                      text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n"
                                                           f"❓ 1-й вопрос: {quote_html(question.question_text)}\n"
-                                                          f"\n{quote_html(answer_options_text)}", reply_markup=keyboard)
+                                                          f"\n{answer_options_text}", reply_markup=keyboard)
                 await PassQe.ClosedAnswer.set()
                 await state.update_data(question_id=question.question_id)
 
