@@ -206,7 +206,7 @@ change_email_callback = CallbackData("action", "change")
 change_email_kb = InlineKeyboardMarkup(
     inline_keyboard=[
         [
-            InlineKeyboardButton(text="Сменить электронную почту",
+            InlineKeyboardButton(text="📬 Сменить электронную почту",
                                  callback_data=change_email_callback.new(change="true"))
         ]
     ]

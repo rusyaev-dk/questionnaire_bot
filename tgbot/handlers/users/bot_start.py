@@ -32,7 +32,7 @@ async def bot_start(message: types.Message, state: FSMContext):
         await UserEmail.GetEmail.set()
         await state.update_data(msg_id=msg.message_id)
 
-    elif message.text == "/restart":
+    elif message.text == "/restart" or message.text == "/start":
         await db_commands.add_user(id=message.from_user.id, name=message.from_user.full_name)
         state_name = await state.get_state()
         if state_name:
@@ -101,6 +101,7 @@ async def get_user_email(message: types.Message, state: FSMContext):
     flag = data.get("flag")
 
     if message.text == "❌ Продолжить без почты":
+        await db_commands.update_user_email(user_id=message.from_user.id, email=message.from_user.username)
         markup = main_menu_kb
         if flag:
             markup = None
@@ -112,7 +113,7 @@ async def get_user_email(message: types.Message, state: FSMContext):
     else:
         await db_commands.update_user_email(user_id=message.from_user.id, email=message.text)
         await message.answer("✅ Отлично, Ваши контактные данные сохранены. Вы можете изменить адрес своей электронной "
-                             "почты позже в разделе \"Мой профиль\".")
+                             "почты позже в разделе \"Мой профиль\".", reply_markup=main_menu_kb)
 
     msg_id = data.get("msg_id")
     await message.bot.delete_message(chat_id=message.from_user.id, message_id=msg_id)

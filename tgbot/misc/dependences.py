@@ -4,7 +4,6 @@ ADMIN_USERNAME = "@dnrvv"
 
 CREATED_GUIDE_MESSAGE = ("Гайд: тут будет гайд...")
 PASSED_GUIDE_MESSAGE = ("Гайд: тут будет гайд...")
-BOT_INFO_MESSAGE = ("s")
 
 TITLE_LENGTH = 30
 QUESTION_LENGTH = 350

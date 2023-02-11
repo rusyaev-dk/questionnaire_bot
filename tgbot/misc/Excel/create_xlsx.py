@@ -17,6 +17,7 @@ async def create_xlsx_file(questionnaire: Questionnaire):
     questions = []
     for field in questions_fields:
         questions.append(field.question_text)
+    questions.append("Контактная информация")
     sheet_1.append(questions)
 
     passed_qes = await db_commands.select_passed_users(qe_id=questionnaire.qe_id)
@@ -26,12 +27,14 @@ async def create_xlsx_file(questionnaire: Questionnaire):
         answers = []
         for field in answers_fields:
             answers.append(field.answer_text)
+        respondent = await db_commands.select_user(id=passed_qe.respondent_id)
+        answers.append(respondent.email)
         sheet_1.append(answers)
 
     letters = ["A", "B", "C", "D", "E", "F", "G", "H"]
     i = 0
     for letter in letters:
-        if i > questionnaire.questions_quantity - 1:
+        if i > questionnaire.questions_quantity:
             break
         col = sheet_1.column_dimensions[f'{letter}']
         col.width = len(questions[i]) + 10

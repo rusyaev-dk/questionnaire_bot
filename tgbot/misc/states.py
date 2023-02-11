@@ -3,6 +3,7 @@ from aiogram.dispatcher.filters.state import StatesGroup, State
 
 class UserEmail(StatesGroup):
     GetEmail = State()
+    UpdateEmail = State()
 
 
 class CreateQe(StatesGroup):
