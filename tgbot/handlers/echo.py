@@ -10,6 +10,9 @@ async def bot_echo_message(message: types.Message, state: FSMContext):
     if state == "CreateQe:QuestionType":
         await message.answer("⬆️ Пожалуйста, укажите <b>тип</b> вопроса, выбрав соответствующий пункт выше.\n"
                              "❌ Чтобы прекратить создание опроса - нажмите <b>/cancel</b>")
+    elif state == "PassQe:ClosedAnswer":
+        await message.answer("⬆️ Пожалуйста, укажите <b>вариант</b> ответа, выбрав соответствующий пункт выше.\n"
+                             "❌ Чтобы прекратить прохождение опроса - нажмите <b>/cancel</b>")
     else:
         await message.answer("😔 Команда не распознана. Если что-то пошло не так - нажмите <b>/restart</b>")
 
@@ -20,5 +23,5 @@ async def bot_echo_callback(call: types.CallbackQuery, state: FSMContext):
 
 
 def register_echo(dp: Dispatcher):
-    dp.register_message_handler(bot_echo_message, state="*", content_types=types.ContentTypes.ANY)
+    dp.register_message_handler(bot_echo_message, content_types=types.ContentTypes.ANY, state="*")
     dp.register_callback_query_handler(bot_echo_callback, state="*")

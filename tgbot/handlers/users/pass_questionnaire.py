@@ -8,6 +8,7 @@ from tgbot.keyboards.qe_reply_kbs import main_menu_kb
 from tgbot.keyboards.qe_inline_kbs import parse_answer_options_kb, answers_approve_kb, \
     answer_options_callback, answers_approve_callback, answers_approves
 from tgbot.misc.states import PassQe
+from tgbot.misc.throttling_function import rate_limit
 from tgbot.services.database import db_commands
 from tgbot.misc.dependences import USER_ANSWER_ID_LENGTH, ANSWER_LENGTH
 from tgbot.services.service_functions import parse_answers_text, parse_answer_options, generate_random_id
@@ -193,8 +194,18 @@ async def answers_approve(call: types.CallbackQuery, callback_data: dict, state:
     await state.finish()
 
 
+@rate_limit(1)
+async def incorrect_content_alert(message: types.Message, state: FSMContext):
+    state = await state.get_state()
+    if "OpenAnswer" in state:
+        await message.answer("❗️ На открытый вопрос можно отвечать только текстовым сообщением. Попробуйте снова:")
+
+
 def register_pass_questionnaire(dp: Dispatcher):
     dp.register_message_handler(get_open_answer, content_types=types.ContentType.TEXT, state=PassQe.OpenAnswer)
     dp.register_callback_query_handler(get_closed_answer, answer_options_callback.filter(), state=PassQe.ClosedAnswer)
+
+    dp.register_message_handler(incorrect_content_alert, content_types=types.ContentType.ANY, state=PassQe.OpenAnswer)
+
     dp.register_callback_query_handler(answers_approve, answers_approve_callback.filter(approve=answers_approves),
                                        state=PassQe.PassEndApprove)

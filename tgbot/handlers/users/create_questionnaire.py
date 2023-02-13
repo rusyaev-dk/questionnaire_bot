@@ -6,12 +6,14 @@ from tgbot.keyboards.qe_reply_kbs import main_menu_kb
 from tgbot.keyboards.qe_inline_kbs import questionnaire_approve_kb, question_type_kb, share_link_kb, \
     question_type_callback, question_types, qe_approve_callback, qe_approves
 from tgbot.misc.states import CreateQe
+from tgbot.misc.throttling_function import rate_limit
 from tgbot.services.database import db_commands
 from tgbot.misc.dependences import MAX_QUESTIONS_QUANTITY, QE_ID_LENGTH, MAX_ANSWERS_QUANTITY, \
     QUESTION_ID_LENGTH, ANSWER_OPTION_ID_LENGTH, TITLE_LENGTH, QUESTION_LENGTH, ANSWER_OPTION_LENGTH
 from tgbot.services.service_functions import generate_random_id, parse_questions_text, parse_share_link
 
 
+@rate_limit(1)
 async def get_qe_title(message: types.Message, state: FSMContext):
     if len(message.text) > TITLE_LENGTH:
         await message.answer(f"❗ <b>Длина</b> названия должна составлять не более <b>{TITLE_LENGTH}</b> символов. "
@@ -30,6 +32,7 @@ async def get_qe_title(message: types.Message, state: FSMContext):
         await CreateQe.QuestionsQuantity.set()
 
 
+@rate_limit(1)
 async def get_questions_quantity(message: types.Message, state: FSMContext):
     try:
         questions_quantity = int(message.text)
@@ -84,6 +87,7 @@ async def select_question_type(call: types.CallbackQuery, callback_data: dict, s
         await state.finish()
 
 
+@rate_limit(1)
 async def get_question_text(message: types.Message, state: FSMContext):
     if len(message.text) > QUESTION_LENGTH:
         await message.answer(f"❗ <b>Длина</b> вопроса должна составлять не более <b>{QUESTION_LENGTH}</b> символов. "
@@ -119,6 +123,7 @@ async def get_question_text(message: types.Message, state: FSMContext):
             await CreateQe.AnswerOptionsQuantity.set()
 
 
+@rate_limit(1)
 async def get_question_with_media(message: types.Message, state: FSMContext):
     if message.caption and len(message.caption) > QUESTION_LENGTH:
         await message.answer(f"❗ <b>Длина</b> вопроса должна составлять не более <b>{QUESTION_LENGTH}</b> символов. "
@@ -154,6 +159,7 @@ async def get_question_with_media(message: types.Message, state: FSMContext):
             await CreateQe.AnswerOptionsQuantity.set()
 
 
+@rate_limit(1)
 async def get_closed_answers_quantity(message: types.Message, state: FSMContext):
     try:
         answers_quantity = int(message.text)
@@ -176,6 +182,7 @@ async def get_closed_answers_quantity(message: types.Message, state: FSMContext)
         return
 
 
+@rate_limit(1)
 async def get_closed_answer_text(message: types.Message, state: FSMContext):
     data = await state.get_data()
     closed_counter = data.get("closed_counter")
@@ -241,19 +248,36 @@ async def questionnaire_approve(call: types.CallbackQuery, callback_data: dict, 
     await state.finish()
 
 
+@rate_limit(1)
+async def incorrect_content_alert(message: types.Message, state: FSMContext):
+    state = await state.get_state()
+    if "Title" in state:
+        await message.answer("❗️ Введите текстовое значение.")
+    elif "QuestionsQuantity" in state or "AnswerOptionsQuantity" in state:
+        await message.answer("❗️ Введите целочисленное значение.")
+    elif "QuestionText" in state or "AnswerOptionText" in state:
+        await message.answer("❗️ К вопросу можно прикрепить только изображение <b>без сжатия</b>. Попробуйте снова:")
+
+
 def register_create_questionnaire(dp: Dispatcher):
     text = types.ContentType.TEXT
     media = [types.ContentType.TEXT, types.ContentType.PHOTO]
+    content_alert_states = [CreateQe.Title, CreateQe.QuestionsQuantity, CreateQe.QuestionText,
+                            CreateQe.AnswerOptionsQuantity, CreateQe.AnswerOptionText]
 
     dp.register_message_handler(get_qe_title, content_types=text, state=CreateQe.Title)
     dp.register_message_handler(get_questions_quantity, content_types=text, state=CreateQe.QuestionsQuantity)
-    dp.register_callback_query_handler(select_question_type, question_type_callback.filter(question_type=question_types),
+    dp.register_callback_query_handler(select_question_type,
+                                       question_type_callback.filter(question_type=question_types),
                                        state=CreateQe.QuestionType)
 
     dp.register_message_handler(get_question_text, content_types=text, state=CreateQe.QuestionText)
     dp.register_message_handler(get_question_with_media, content_types=media, state=CreateQe.QuestionText)
     dp.register_message_handler(get_closed_answers_quantity, content_types=text, state=CreateQe.AnswerOptionsQuantity)
     dp.register_message_handler(get_closed_answer_text, content_types=text, state=CreateQe.AnswerOptionText)
+
+    dp.register_message_handler(incorrect_content_alert, content_types=types.ContentType.ANY,
+                                state=content_alert_states)
 
     dp.register_callback_query_handler(questionnaire_approve, qe_approve_callback.filter(approve=qe_approves),
                                        state=CreateQe.CreateApprove)
