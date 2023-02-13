@@ -202,12 +202,17 @@ def parse_answer_options_kb(options_quantity: int):
     return keyboard
 
 
-change_email_callback = CallbackData("action", "change")
-change_email_kb = InlineKeyboardMarkup(
+user_profile_menu_callback = CallbackData("action", "option")
+user_profile_options = ["main_menu", "change_email"]
+user_profile_menu_kb = InlineKeyboardMarkup(
     inline_keyboard=[
         [
             InlineKeyboardButton(text="📬 Сменить электронную почту",
-                                 callback_data=change_email_callback.new(change="true"))
+                                 callback_data=user_profile_menu_callback.new(option="change_email"))
+        ],
+        [
+            InlineKeyboardButton(text="◀ Главное меню",
+                                 callback_data=user_profile_menu_callback.new(option="main_menu"))
         ]
     ]
 )

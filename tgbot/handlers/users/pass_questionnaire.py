@@ -161,7 +161,6 @@ async def get_closed_answer(call: types.CallbackQuery, callback_data: dict, stat
             text = "❇️ Опрос пройден.\n\n"
             answers = await db_commands.select_user_answers(respondent_id=call.from_user.id, qe_id=qe_id)
             text += await parse_answers_text(answers=answers, answers_quantity=answers_quantity)
-           # await call.bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
             await call.message.answer(text=text, reply_markup=answers_approve_kb)
             await PassQe.PassEndApprove.set()
 

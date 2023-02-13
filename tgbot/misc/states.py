@@ -3,7 +3,6 @@ from aiogram.dispatcher.filters.state import StatesGroup, State
 
 class UserEmail(StatesGroup):
     GetEmail = State()
-    UpdateEmail = State()
 
 
 class CreateQe(StatesGroup):
@@ -28,6 +27,11 @@ class PassQe(StatesGroup):
     ClosedAnswer = State()
 
     PassEndApprove = State()
+
+
+class UserProfileMenu(StatesGroup):
+    SelectOption = State()
+    UpdateEmail = State()
 
 
 class CreatedQeStatistics(StatesGroup):
