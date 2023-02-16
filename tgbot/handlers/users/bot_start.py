@@ -180,17 +180,14 @@ async def pass_qe_approve(call: types.CallbackQuery, callback_data: dict, state:
                 caption = "❓ 1-й вопрос: описание отсутствует"
 
             if question.question_photo_id:
-                await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                                 text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n")
+                await call.message.edit_text(text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n")
                 await call.message.answer_photo(photo=question.question_photo_id, caption=caption)
             elif question.question_doc_id:
-                await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                                 text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n")
+                await call.message.edit_text(text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n")
                 await call.message.answer_document(document=question.question_doc_id, caption=caption)
             else:
-                await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                                 text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n"
-                                                      f"❓ 1-й вопрос: {quote_html(question.question_text)}")
+                await call.message.edit_text(text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n"
+                                                  f"❓ 1-й вопрос: {quote_html(question.question_text)}")
             await PassQe.OpenAnswer.set()
 
         else:
@@ -204,20 +201,17 @@ async def pass_qe_approve(call: types.CallbackQuery, callback_data: dict, state:
                 caption = "❓ 1-й вопрос: описание отсутствует"
 
             if question.question_photo_id:
-                await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                                 text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n")
+                await call.message.edit_text(text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n")
                 await call.message.answer_photo(photo=question.question_photo_id, caption=caption,
                                                 reply_markup=keyboard)
             elif question.question_doc_id:
-                await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                                 text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n")
+                await call.message.edit_text(text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n")
                 await call.message.answer_document(document=question.question_doc_id, caption=caption,
                                                    reply_markup=keyboard)
             else:
-                await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                                 text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n"
-                                                      f"❓ 1-й вопрос: {quote_html(question.question_text)}\n"
-                                                      f"\n{answer_options_text}", reply_markup=keyboard)
+                await call.message.edit_text(text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n"
+                                                  f"❓ 1-й вопрос: {quote_html(question.question_text)}\n"
+                                                  f"\n{answer_options_text}", reply_markup=keyboard)
             await PassQe.ClosedAnswer.set()
             await state.update_data(question_id=question.question_id)
 
@@ -225,8 +219,7 @@ async def pass_qe_approve(call: types.CallbackQuery, callback_data: dict, state:
         await state.update_data(qe_id=questionnaire.qe_id, counter=0, answer_start_time=answer_start_time,
                                 answers_quantity=questionnaire.questions_quantity, completion_time=0)
     elif approve == "cancel":
-        await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                         text="❌ Прохождение опроса отменено.")
+        await call.message.edit_text(text="❌ Прохождение опроса отменено.")
         await call.message.answer("Главное меню:", reply_markup=main_menu_kb)
         await state.reset_data()
         await state.finish()
@@ -235,8 +228,7 @@ async def pass_qe_approve(call: types.CallbackQuery, callback_data: dict, state:
 async def replay_qe_approve(call: types.CallbackQuery, callback_data: dict, state: FSMContext):
     approve = callback_data.get("approve")
     if approve == "cancel":
-        await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                         text="❌ Прохождение опроса отменено.")
+        await call.message.edit_text(text="❌ Прохождение опроса отменено.")
         await call.message.answer("Главное меню:", reply_markup=main_menu_kb)
         await state.reset_data()
         await state.finish()
@@ -260,17 +252,14 @@ async def replay_qe_approve(call: types.CallbackQuery, callback_data: dict, stat
                     caption = "❓ 1-й вопрос: описание отсутствует"
 
                 if question.question_photo_id:
-                    await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                                     text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n")
+                    await call.message.edit_text(text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n")
                     await call.message.answer_photo(photo=question.question_photo_id, caption=caption)
                 elif question.question_doc_id:
-                    await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                                     text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n")
+                    await call.message.edit_text(text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n")
                     await call.message.answer_document(document=question.question_doc_id, caption=caption)
                 else:
-                    await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                                     text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n"
-                                                          f"❓ 1-й вопрос: {quote_html(question.question_text)}")
+                    await call.message.edit_text(text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n"
+                                                      f"❓ 1-й вопрос: {quote_html(question.question_text)}")
                 await PassQe.OpenAnswer.set()
 
             else:
@@ -284,20 +273,17 @@ async def replay_qe_approve(call: types.CallbackQuery, callback_data: dict, stat
                     caption = "❓ 1-й вопрос: описание отсутствует"
 
                 if question.question_photo_id:
-                    await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                                     text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n")
+                    await call.message.edit_text(text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n")
                     await call.message.answer_photo(photo=question.question_photo_id, caption=caption,
                                                     reply_markup=keyboard)
                 elif question.question_doc_id:
-                    await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                                     text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n")
+                    await call.message.edit_text(text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n")
                     await call.message.answer_document(document=question.question_doc_id, caption=caption,
                                                        reply_markup=keyboard)
                 else:
-                    await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                                     text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n"
-                                                          f"❓ 1-й вопрос: {quote_html(question.question_text)}\n"
-                                                          f"\n{answer_options_text}", reply_markup=keyboard)
+                    await call.message.edit_text(text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n"
+                                                      f"❓ 1-й вопрос: {quote_html(question.question_text)}\n"
+                                                      f"\n{answer_options_text}", reply_markup=keyboard)
                 await PassQe.ClosedAnswer.set()
                 await state.update_data(question_id=question.question_id)
 

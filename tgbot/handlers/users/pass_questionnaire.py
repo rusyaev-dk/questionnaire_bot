@@ -94,8 +94,7 @@ async def get_closed_answer(call: types.CallbackQuery, callback_data: dict, stat
     qe_id = data.get("qe_id")
     if answer == "cancel":
         await db_commands.delete_user_answers(respondent_id=call.from_user.id, qe_id=qe_id)
-        await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                         text="❌ Прохождение опроса отменено.")
+        await call.message.edit_text(text="❌ Прохождение опроса отменено.")
         await call.message.answer("Главное меню:", reply_markup=main_menu_kb)
         await state.reset_data()
         await state.finish()
@@ -124,11 +123,9 @@ async def get_closed_answer(call: types.CallbackQuery, callback_data: dict, stat
                 f"{(await parse_answer_options(answer_options))[:-19]}")
 
         if previous_question.question_photo_id or previous_question.question_doc_id:
-            await call.bot.edit_message_caption(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                                caption=text)
+            await call.message.edit_caption(caption=text)
         else:
-            await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                             text=text, reply_markup=None)
+            await call.message.edit_text(text=text, reply_markup=None)
 
         counter += 1
         if counter < answers_quantity:
@@ -193,8 +190,7 @@ async def answers_approve(call: types.CallbackQuery, callback_data: dict, state:
         await db_commands.add_passed_qe(respondent_id=call.from_user.id, qe_id=qe_id, completion_time=completion_time)
         await db_commands.increase_qe_passed_by(qe_id=qe_id)
         await db_commands.increase_user_passed_qe_quantity(respondent_id=call.from_user.id)
-        await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                         text="📮 Спасибо за уделённое время! Ваши ответы отправлены автору опроса.")
+        await call.message.edit_text(text="📮 Спасибо за уделённое время! Ваши ответы отправлены автору опроса.")
 
         user = await db_commands.select_user(id=call.from_user.id)
         if user.passed_qe_quantity % 5 == 0 and user.passed_qe_quantity != 0:
@@ -204,8 +200,7 @@ async def answers_approve(call: types.CallbackQuery, callback_data: dict, state:
 
     elif approve == "delete":
         await db_commands.delete_user_answers(respondent_id=call.from_user.id, qe_id=qe_id)
-        await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                         text="❌ Ваши ответы удалены.")
+        await call.message.edit_text(text="❌ Ваши ответы удалены.")
         await call.message.answer("Главное меню:", reply_markup=main_menu_kb)
 
     await state.reset_data()

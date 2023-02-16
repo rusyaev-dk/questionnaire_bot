@@ -66,22 +66,19 @@ async def select_question_type(call: types.CallbackQuery, callback_data: dict, s
     data = await state.get_data()
     counter = data.get("counter")
     if question_type == "open":
-        await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                         text=f"❓ Введите {counter + 1}-й вопрос:")
+        await call.message.edit_text(text=f"❓ Введите {counter + 1}-й вопрос:")
         await state.update_data(question_type="open")
         await CreateQe.QuestionText.set()
 
     elif question_type == "closed":
-        await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                         text=f"❓ Введите {counter + 1}-й вопрос:")
+        await call.message.edit_text(text=f"❓ Введите {counter + 1}-й вопрос:")
         await state.update_data(question_type="closed")
         await CreateQe.QuestionText.set()
 
     elif question_type == "cancel":
         qe_id = data.get("qe_id")
         await db_commands.delete_questionnaire(qe_id=qe_id)
-        await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                         text="❌ Создание опроса отменено.")
+        await call.message.edit_text(text="❌ Создание опроса отменено.")
         await call.message.answer("Главное меню:", reply_markup=main_menu_kb)
         await state.reset_data()
         await state.finish()
@@ -241,17 +238,15 @@ async def questionnaire_approve(call: types.CallbackQuery, callback_data: dict, 
         await db_commands.add_created_qe(creator_id=call.from_user.id, qe_id=qe_id)
         await db_commands.increase_user_created_qe_quantity(creator_id=call.from_user.id)
         link = await parse_share_link(qe_id=qe_id)
-        await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                         text="✅ Отлично, Ваш опрос добавлен в базу данных "
-                                         "и доступен для прохождения другими пользователями.\n\n"
-                                         f"📎 Ссылка для прохождения: <b>{link}</b>",
-                                         reply_markup=share_link_kb(link), disable_web_page_preview=True)
+        await call.message.edit_text(text="✅ Отлично, Ваш опрос добавлен в базу данных "
+                                     "и доступен для прохождения другими пользователями.\n\n"
+                                     f"📎 Ссылка для прохождения: <b>{link}</b>",
+                                     reply_markup=share_link_kb(link), disable_web_page_preview=True)
         await call.message.answer("Главное меню:", reply_markup=main_menu_kb)
 
     elif approve == "delete":
         await db_commands.delete_questionnaire(qe_id=qe_id)
-        await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                         text="❌ Создание опроса отменено.")
+        await call.message.edit_text(text="❌ Создание опроса отменено.")
         await call.message.answer("Главное меню:",
                                   reply_markup=main_menu_kb)
     await state.reset_data()

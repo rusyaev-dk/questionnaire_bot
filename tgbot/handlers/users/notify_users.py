@@ -16,7 +16,8 @@ from tgbot.services.database import db_commands
 
 @rate_limit(5)
 async def notify_users(message: types.Message):
-    await message.answer("📦 Отправьте текст/фото/файл для оповещения пользователей:", reply_markup=ReplyKeyboardRemove())
+    await message.answer("📦 Отправьте текст/фото/файл для оповещения пользователей:",
+                         reply_markup=ReplyKeyboardRemove())
     await NotifyUsers.NotifyMedia.set()
 
 
@@ -47,8 +48,7 @@ async def notify_approve(call: types.CallbackQuery, callback_data: dict, state: 
         users = await db_commands.select_all_users()
         msg_type = data.get("msg_type")
 
-        await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                         text="✅ Бот начал рассылку.")
+        await call.message.edit_text(text="✅ Бот начал рассылку.")
         await call.message.answer("Главное меню:", reply_markup=main_menu_kb)
         counter = 0
 
@@ -90,8 +90,7 @@ async def notify_approve(call: types.CallbackQuery, callback_data: dict, state: 
                 logging.info(f"Successfully sent messages: {counter}")
 
     elif approve == "cancel":
-        await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                         text="❌ Рассылка отменена.")
+        await call.message.edit_text(text="❌ Рассылка отменена.")
         await call.message.answer("Главное меню:", reply_markup=main_menu_kb)
     await state.reset_data()
     await state.finish()

@@ -22,8 +22,7 @@ async def get_passed_qe_statistics(call: types.CallbackQuery, callback_data: dic
                                             markdown=False)
         share_text = await passed_qe_info(respondent_id=call.from_user.id, questionnaire=questionnaire,
                                           markdown=True)
-        await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                         text=message_text, reply_markup=passed_qe_statistics_kb(share_text=share_text))
+        await call.message.edit_text(text=message_text, reply_markup=passed_qe_statistics_kb(share_text=share_text))
         await PassedQeStatistics.SelectStatsAct.set()
 
 
@@ -32,9 +31,7 @@ async def passed_qe_management(call: types.CallbackQuery, callback_data: dict, s
     if act == "step_back":
         data = await state.get_data()
         keyboard = data.get("keyboard")
-        await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                         text="🔍 Выберите опрос для отображения информации:",
-                                         reply_markup=keyboard)
+        await call.message.edit_text(text="🔍 Выберите опрос для отображения информации:", reply_markup=keyboard)
         await PassedQeStatistics.SelectQE.set()
 
     elif act == "main_menu":

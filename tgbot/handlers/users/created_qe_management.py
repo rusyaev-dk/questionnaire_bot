@@ -27,7 +27,7 @@ async def get_created_qe_statistics(call: types.CallbackQuery, callback_data: di
         qe_text = await created_qe_info(questionnaire=questionnaire)
         stat_text = await statistics_qe_text(questionnaire=questionnaire)
 
-        await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id, text=qe_text)
+        await call.message.edit_text(text=qe_text)
         keyboard = await created_qe_statistics_kb(is_active=questionnaire.is_active, qe_id=qe_id)
         await call.message.answer(text=stat_text, reply_markup=keyboard)
         await state.update_data(qe_id=qe_id)
@@ -44,9 +44,8 @@ async def created_qe_management(call: types.CallbackQuery, callback_data: dict, 
     if act == "get_file":
         passed_by = questionnaire.passed_by
         if passed_by >= PASSED_BY_MINIMUM:
-            await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                             text="📎 Выберите <b>формат</b> файла:\n\n"
-                                                  "ℹ️ Примечание: тут будет примечание.", reply_markup=file_type_kb)
+            await call.message.edit_text(text="📎 Выберите <b>формат</b> файла:\n\n"
+                                         "ℹ️ Примечание: тут будет примечание.", reply_markup=file_type_kb)
             await CreatedQeStatistics.SelectFileType.set()
         else:
             await call.answer(f"👥 Чтобы получить файл с ответами, Ваш опрос должно пройти "
@@ -59,8 +58,7 @@ async def created_qe_management(call: types.CallbackQuery, callback_data: dict, 
         questionnaire = await db_commands.select_questionnaire(qe_id=qe_id)
         stat_text = await statistics_qe_text(questionnaire=questionnaire)
         keyboard = await created_qe_statistics_kb(is_active=questionnaire.is_active, qe_id=qe_id)
-        await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id, text=stat_text,
-                                         reply_markup=keyboard)
+        await call.message.edit_text(text=stat_text, reply_markup=keyboard)
 
     elif act == "resume_qe":
         await db_commands.freeze_questionnaire(qe_id=qe_id, is_active="true")
@@ -69,21 +67,18 @@ async def created_qe_management(call: types.CallbackQuery, callback_data: dict, 
         questionnaire = await db_commands.select_questionnaire(qe_id=qe_id)
         stat_text = await statistics_qe_text(questionnaire=questionnaire)
         keyboard = await created_qe_statistics_kb(is_active=questionnaire.is_active, qe_id=qe_id)
-        await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id, text=stat_text,
-                                         reply_markup=keyboard)
+        await call.message.edit_text(text=stat_text, reply_markup=keyboard)
 
     elif act == "delete":
         await call.answer("⚠️ После удаления опроса пропадёт вся статистика и ответы. Восстановить опрос уже "
                           "не получится.", show_alert=True)
-        await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                         text=f"Подтвердите удаление опроса: <b>{questionnaire.title}</b>",
-                                         reply_markup=delete_qe_approve_kb)
+        await call.message.edit_text(text=f"Подтвердите удаление опроса: <b>{questionnaire.title}</b>",
+                                     reply_markup=delete_qe_approve_kb)
         await CreatedQeStatistics.DeleteApprove.set()
 
     elif act == "step_back":
         keyboard = data.get("keyboard")
-        await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                         text="🔍 Выберите опрос для отображения статистики:", reply_markup=keyboard)
+        await call.message.edit_text(text="🔍 Выберите опрос для отображения статистики:", reply_markup=keyboard)
         await CreatedQeStatistics.SelectQE.set()
 
     elif act == "main_menu":
@@ -136,8 +131,7 @@ async def choose_file_type(call: types.CallbackQuery, callback_data: dict, state
 
     elif f_type == "step_back":
         keyboard = await created_qe_statistics_kb(is_active=questionnaire.is_active, qe_id=qe_id)
-        await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id, text=stat_text,
-                                         reply_markup=keyboard)
+        await call.message.edit_text(text=stat_text, reply_markup=keyboard)
         await CreatedQeStatistics.SelectStatsAct.set()
 
     elif f_type == "main_menu":
@@ -159,13 +153,11 @@ async def delete_qe_approve(call: types.CallbackQuery, callback_data: dict, stat
         created_qes = await db_commands.select_user_created_qes(creator_id=call.from_user.id)
         if len(created_qes) > 0:
             keyboard = await qe_list_kb(questionnaires=created_qes)
-            await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                             text="🔍 Выберите опрос для отображения статистики:", reply_markup=keyboard)
+            await call.message.edit_text(text="🔍 Выберите опрос для отображения статистики:", reply_markup=keyboard)
             await state.update_data(keyboard=keyboard)
             await CreatedQeStatistics.SelectQE.set()
         else:
-            await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
-                                             text="📭 У Вас нет созданных опросов.")
+            await call.message.edit_text(text="📭 У Вас нет созданных опросов.")
             await call.message.answer("Главное меню:", reply_markup=main_menu_kb)
             await state.reset_data()
             await state.finish()
@@ -175,8 +167,7 @@ async def delete_qe_approve(call: types.CallbackQuery, callback_data: dict, stat
         questionnaire = await db_commands.select_questionnaire(qe_id=qe_id)
         stat_text = await statistics_qe_text(questionnaire=questionnaire)
         keyboard = await created_qe_statistics_kb(is_active=questionnaire.is_active, qe_id=qe_id)
-        await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id, text=stat_text,
-                                         reply_markup=keyboard)
+        await call.message.edit_text(text=stat_text, reply_markup=keyboard)
         await CreatedQeStatistics.SelectStatsAct.set()
 
 
