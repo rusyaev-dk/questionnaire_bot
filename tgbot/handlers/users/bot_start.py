@@ -28,12 +28,10 @@ async def bot_start(message: types.Message, state: FSMContext):
                 f"\n\n📧 Пожалуйста, отправьте <b>адрес своей электронной почты</b> для обратной связи с создателями "
                 f"других опросов:")
         msg = await message.answer(text=text, reply_markup=email_accept_kb)
-        await db_commands.add_user(id=message.from_user.id, name=message.from_user.full_name)
         await UserEmail.GetEmail.set()
         await state.update_data(msg_id=msg.message_id)
 
     elif message.text == "/restart" or message.text == "/start":
-        await db_commands.add_user(id=message.from_user.id, name=message.from_user.full_name)
         state_name = await state.get_state()
         if state_name:
             if "CreateQe" in state_name:

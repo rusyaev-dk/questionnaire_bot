@@ -36,6 +36,10 @@ async def parse_questions_text(questionnaire: Questionnaire):
             question_text = "Изображение"
         elif question_text and questions[i].question_photo_id:
             question_text = f"Изображение с описанием: {quote_html(question_text)}"
+        elif question_text is None and questions[i].question_doc_id:
+            question_text = "Файл"
+        elif question_text and questions[i].question_doc_id:
+            question_text = f"Файл с описанием {quote_html(question_text)}"
 
         text += f"\n• {i + 1}-й вопрос: <b>{quote_html(question_text)}</b>\n"
         if questions[i].question_type == "closed":
@@ -87,6 +91,10 @@ async def created_qe_info(questionnaire: Questionnaire):
             question_text = "Изображение"
         elif question_text and questions[i].question_photo_id:
             question_text = f"Изображение с описанием: {quote_html(question_text)}"
+        elif question_text is None and questions[i].question_doc_id:
+            question_text = "Файл"
+        elif question_text and questions[i].question_doc_id:
+            question_text = f"Файл с описанием {quote_html(question_text)}"
 
         text += f"\n• {i + 1}-й вопрос: <b>{quote_html(question_text)}</b>\n"
         if questions[i].question_type == "closed":
@@ -156,6 +164,10 @@ async def passed_qe_info(respondent_id: int, questionnaire: Questionnaire, markd
                 question_text = "Изображение"
             elif question_text and questions[i].question_photo_id:
                 question_text = f"Изображение с описанием: {quote_html(question_text)}"
+            elif question_text is None and questions[i].question_doc_id:
+                question_text = "Файл"
+            elif question_text and questions[i].question_doc_id:
+                question_text = f"Файл с описанием {quote_html(question_text)}"
 
             text += (f"• {i + 1}-й вопрос: <b>{quote_html(question_text)}</b>\n"
                      f"Ответ: <b>{quote_html(answers[i].answer_text)}</b>\n\n")
