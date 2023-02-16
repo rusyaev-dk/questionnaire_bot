@@ -30,10 +30,11 @@ async def create_questionnaire(qe_id: str, creator_id: int, title: str, question
 
 
 async def create_question(question_id: str, qe_id: str, question_type: str, question_text: str = None,
-                          question_photo_id: str = None):
+                          question_photo_id: str = None, question_doc_id: str = None):
     try:
         question = Question(question_id=question_id, qe_id=qe_id, question_type=question_type,
-                            question_text=question_text, question_photo_id=question_photo_id)
+                            question_text=question_text, question_photo_id=question_photo_id,
+                            question_doc_id=question_doc_id)
         await question.create()
     except UniqueViolationError:
         print("Вопрос уже существует!")

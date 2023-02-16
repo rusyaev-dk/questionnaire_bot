@@ -139,8 +139,18 @@ async def get_question_with_media(message: types.Message, state: FSMContext):
         question_type = data.get("question_type")
         question_id = generate_random_id(length=QUESTION_ID_LENGTH)
         await state.update_data(question_id=question_id)
-        await db_commands.create_question(question_id=question_id, qe_id=qe_id, question_type=question_type,
-                                          question_text=message.caption, question_photo_id=message.photo[-1].file_id)
+
+        if message.photo:
+            await db_commands.create_question(question_id=question_id, qe_id=qe_id, question_type=question_type,
+                                              question_text=message.caption,
+                                              question_photo_id=message.photo[-1].file_id)
+        elif message.document:
+            await db_commands.create_question(question_id=question_id, qe_id=qe_id, question_type=question_type,
+                                              question_text=message.caption, question_doc_id=message.document.file_id)
+        elif message.text:
+            await db_commands.create_question(question_id=question_id, qe_id=qe_id, question_type=question_type,
+                                              question_text=message.text)
+
         if question_type == "open":
             counter += 1
             if counter < questions_quantity:
@@ -256,12 +266,13 @@ async def incorrect_content_alert(message: types.Message, state: FSMContext):
     elif "QuestionsQuantity" in state or "AnswerOptionsQuantity" in state:
         await message.answer("❗️ Введите целочисленное значение.")
     elif "QuestionText" in state or "AnswerOptionText" in state:
-        await message.answer("❗️ К вопросу можно прикрепить только изображение <b>без сжатия</b>. Попробуйте снова:")
+        await message.answer("❗️ К вопросу можно прикрепить только <b>изображение</b> или <b>документ</b>. "
+                             "Попробуйте снова:")
 
 
 def register_create_questionnaire(dp: Dispatcher):
     text = types.ContentType.TEXT
-    media = [types.ContentType.TEXT, types.ContentType.PHOTO]
+    media = [types.ContentType.TEXT, types.ContentType.PHOTO, types.ContentType.DOCUMENT]
     content_alert_states = [CreateQe.Title, CreateQe.QuestionsQuantity, CreateQe.QuestionText,
                             CreateQe.AnswerOptionsQuantity, CreateQe.AnswerOptionText]
 

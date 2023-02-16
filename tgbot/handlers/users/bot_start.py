@@ -25,7 +25,7 @@ async def bot_start(message: types.Message, state: FSMContext):
     if err_code == 0:
         text = (f"🔹 Здравствуйте, {message.from_user.full_name}! С помощью этого бота Вы сможете создавать и проходить "
                 f"различные опросы. На данный момент у бота базовый функционал, который в дальнейшем будет расширяться."
-                f"\n📩 Пожалуйста, отправьте <b>адрес своей электронной почты</b> для обратной связи с создателями "
+                f"\n\n📧 Пожалуйста, отправьте <b>адрес своей электронной почты</b> для обратной связи с создателями "
                 f"других опросов:")
         msg = await message.answer(text=text, reply_markup=email_accept_kb)
         await db_commands.add_user(id=message.from_user.id, name=message.from_user.full_name)
@@ -57,8 +57,10 @@ async def deeplink_bot_start(message: types.Message, state: FSMContext):
 
     err_code = await db_commands.add_user(id=message.from_user.id, name=message.from_user.full_name)
     if err_code == 0:
-        text = (f"🔹 Здравствуйте, {message.from_user.full_name}! Пожалуйста, отправьте <b>адрес своей электронной"
-                f" почты</b> для обратной связи с создателем опроса:")
+        text = (f"🔹 Здравствуйте, {message.from_user.full_name}! С помощью этого бота Вы сможете создавать и проходить "
+                f"различные опросы. На данный момент у бота базовый функционал, который в дальнейшем будет расширяться."
+                f"\n\n📧 Прежде чем пройти опрос, пожалуйста, отправьте <b>адрес своей электронной почты</b> для "
+                f"обратной связи с создателями других опросов:")
         msg = await message.answer(text=text, reply_markup=email_accept_kb)
         await db_commands.add_user(id=message.from_user.id, name=message.from_user.full_name)
         await UserEmail.GetEmail.set()
@@ -101,11 +103,14 @@ async def get_user_email(message: types.Message, state: FSMContext):
     flag = data.get("flag")
 
     if message.text == "❌ Продолжить без почты":
-        await db_commands.update_user_email(user_id=message.from_user.id, email=message.from_user.username)
+        email = message.from_user.full_name
+        if email is None:
+            email = "Отсутствует"
+        await db_commands.update_user_email(user_id=message.from_user.id, email=email)
         markup = main_menu_kb
         if flag:
             markup = None
-        await message.answer("Вы сможете добавить электронную почту позже в разделе \"Мой профиль\". Главное меню:",
+        await message.answer("📧 Вы сможете добавить электронную почту позже в разделе \"Мой профиль\". Главное меню:",
                              reply_markup=markup)
     elif "@" not in message.text or "." not in message.text:
         await message.answer("❗️ Введите корректный адрес электронной почты.")
@@ -168,16 +173,20 @@ async def pass_qe_approve(call: types.CallbackQuery, callback_data: dict, state:
         question = questions[0]
 
         if question.question_type == "open":
+
+            if question.question_text:
+                caption = f"❓ 1-й вопрос: {quote_html(question.question_text)}"
+            else:
+                caption = "❓ 1-й вопрос: описание отсутствует"
+
             if question.question_photo_id:
                 await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
                                                  text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n")
-
-                if question.question_text:
-                    caption = f"❓ 1-й вопрос: {quote_html(question.question_text)}"
-                else:
-                    caption = "❓ 1-й вопрос: описание отсутствует"
-
                 await call.message.answer_photo(photo=question.question_photo_id, caption=caption)
+            elif question.question_doc_id:
+                await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
+                                                 text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n")
+                await call.message.answer_document(document=question.question_doc_id, caption=caption)
             else:
                 await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
                                                  text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n"
@@ -189,19 +198,22 @@ async def pass_qe_approve(call: types.CallbackQuery, callback_data: dict, state:
             answer_options_text = await parse_answer_options(answer_options=answer_options)
             keyboard = parse_answer_options_kb(options_quantity=len(answer_options))
 
+            if question.question_text:
+                caption = f"❓ 1-й вопрос: {quote_html(question.question_text)}\n\n{answer_options_text}"
+            else:
+                caption = "❓ 1-й вопрос: описание отсутствует"
+
             if question.question_photo_id:
                 await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
                                                  text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n")
-
-                if question.question_text:
-                    caption = f"❓ 1-й вопрос: {quote_html(question.question_text)}\n\n{answer_options_text}"
-                else:
-                    caption = "❓ 1-й вопрос: описание отсутствует"
-
                 await call.message.answer_photo(photo=question.question_photo_id, caption=caption,
                                                 reply_markup=keyboard)
+            elif question.question_doc_id:
+                await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
+                                                 text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n")
+                await call.message.answer_document(document=question.question_doc_id, caption=caption,
+                                                   reply_markup=keyboard)
             else:
-
                 await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
                                                  text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n"
                                                       f"❓ 1-й вопрос: {quote_html(question.question_text)}\n"
@@ -242,16 +254,19 @@ async def replay_qe_approve(call: types.CallbackQuery, callback_data: dict, stat
             question = questions[0]
 
             if question.question_type == "open":
+                if question.question_text:
+                    caption = f"❓ 1-й вопрос: {quote_html(question.question_text)}"
+                else:
+                    caption = "❓ 1-й вопрос: описание отсутствует"
+
                 if question.question_photo_id:
                     await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
                                                      text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n")
-
-                    if question.question_text:
-                        caption = f"❓ 1-й вопрос: {quote_html(question.question_text)}"
-                    else:
-                        caption = "❓ 1-й вопрос: описание отсутствует"
-
                     await call.message.answer_photo(photo=question.question_photo_id, caption=caption)
+                elif question.question_doc_id:
+                    await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
+                                                     text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n")
+                    await call.message.answer_document(document=question.question_doc_id, caption=caption)
                 else:
                     await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
                                                      text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n"
@@ -263,16 +278,21 @@ async def replay_qe_approve(call: types.CallbackQuery, callback_data: dict, stat
                 answer_options_text = await parse_answer_options(answer_options=answer_options)
                 keyboard = parse_answer_options_kb(options_quantity=len(answer_options))
 
+                if question.question_text:
+                    caption = f"❓ 1-й вопрос: {quote_html(question.question_text)}\n\n{answer_options_text}"
+                else:
+                    caption = "❓ 1-й вопрос: описание отсутствует"
+
                 if question.question_photo_id:
                     await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
                                                      text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n")
-                    if question.question_text:
-                        caption = f"❓ 1-й вопрос: {quote_html(question.question_text)}\n\n{answer_options_text}"
-                    else:
-                        caption = "❓ 1-й вопрос: описание отсутствует"
-
                     await call.message.answer_photo(photo=question.question_photo_id, caption=caption,
                                                     reply_markup=keyboard)
+                elif question.question_doc_id:
+                    await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
+                                                     text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n")
+                    await call.message.answer_document(document=question.question_doc_id, caption=caption,
+                                                       reply_markup=keyboard)
                 else:
                     await call.bot.edit_message_text(chat_id=call.from_user.id, message_id=call.message.message_id,
                                                      text=f"🔍 Вы начали прохождение опроса: {questionnaire.title}\n"
