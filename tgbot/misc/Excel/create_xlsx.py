@@ -1,8 +1,8 @@
 import openpyxl
 from openpyxl.styles import Alignment
 
-from tgbot.services.database import db_commands
-from tgbot.services.database.db_models import Questionnaire
+from tgbot.infrastructure.database import db_commands
+from tgbot.infrastructure.database.db_models import Questionnaire
 from tgbot.services.service_functions import get_average_completion_time
 
 

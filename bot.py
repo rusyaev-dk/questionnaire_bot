@@ -17,18 +17,20 @@ from tgbot.handlers.users.passed_qe_management import register_passed_qe_managem
 from tgbot.handlers.users.bot_start import register_bot_start
 from tgbot.handlers.users.main_menu import register_main_menu
 from tgbot.handlers.users.additional_commands import register_additional_commands
+from tgbot.middlewares.acl import ACLMiddleware
 from tgbot.middlewares.db import DbMiddleware
 from tgbot.middlewares.throttling import ThrottlingMiddleware
 from tgbot.services import set_bot_commands, notify_admins
-from tgbot.services.database import db_gino
-from tgbot.services.database.db_gino import db
+from tgbot.infrastructure.database import db_gino
+from tgbot.infrastructure.database.db_gino import db
 
 logger = logging.getLogger(__name__)
 
 
 def register_all_middlewares(dp):
-    dp.setup_middleware(DbMiddleware())
     dp.setup_middleware(ThrottlingMiddleware())
+    dp.setup_middleware(ACLMiddleware())
+    dp.setup_middleware(DbMiddleware())
 
 
 def register_all_filters(dp):
@@ -68,7 +70,7 @@ async def main():
     dp = Dispatcher(bot, storage=storage)
 
     await db_gino.on_startup(dp)
-    # await db.gino.drop_all()
+    await db.gino.drop_all()
     await db.gino.create_all()
 
     bot['config'] = config
@@ -77,7 +79,7 @@ async def main():
     register_all_filters(dp)
     register_all_handlers(dp)
 
-    await set_bot_commands.set_default_commands(dp)
+    await set_bot_commands.set_bot_commands(dp)
     await notify_admins.on_startup_notify(dp)
 
     try:

@@ -2,7 +2,7 @@ from datetime import date
 
 from sqlalchemy import Column, String, sql, Integer, Float, BigInteger
 
-from tgbot.services.database.db_gino import BaseModel
+from tgbot.infrastructure.database.db_gino import BaseModel
 
 
 class User(BaseModel):

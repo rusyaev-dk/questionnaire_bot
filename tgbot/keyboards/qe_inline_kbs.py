@@ -1,7 +1,7 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.callback_data import CallbackData
 
-from tgbot.services.database import db_commands
+from tgbot.infrastructure.database import db_commands
 from tgbot.misc.dependences import ANSWER_LETTERS
 from tgbot.services.service_functions import parse_share_link
 

@@ -1,10 +1,10 @@
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 
-from tgbot.misc.throttling_function import rate_limit
+from tgbot.middlewares.throttling import rate_limit
 
 
-@rate_limit(2)
+@rate_limit(2, key="echo")
 async def bot_echo_message(message: types.Message, state: FSMContext):
     state = await state.get_state()
     if state == "CreateQe:QuestionType":
@@ -17,7 +17,7 @@ async def bot_echo_message(message: types.Message, state: FSMContext):
         await message.answer("😔 Команда не распознана. Если что-то пошло не так - нажмите <b>/restart</b>")
 
 
-@rate_limit(2)
+@rate_limit(2, key="echo")
 async def bot_echo_callback(call: types.CallbackQuery, state: FSMContext):
     await call.message.answer("😔 Что-то пошло не так. Пожалуйста, нажмите <b>/restart</b>")
 

@@ -6,8 +6,8 @@ from tgbot.keyboards.qe_reply_kbs import main_menu_kb
 from tgbot.keyboards.qe_inline_kbs import questionnaire_approve_kb, question_type_kb, share_link_kb, \
     question_type_callback, question_types, qe_approve_callback, qe_approves
 from tgbot.misc.states import CreateQe
-from tgbot.misc.throttling_function import rate_limit
-from tgbot.services.database import db_commands
+from tgbot.middlewares.throttling import rate_limit
+from tgbot.infrastructure.database import db_commands
 from tgbot.misc.dependences import MAX_QUESTIONS_QUANTITY, QE_ID_LENGTH, MAX_ANSWERS_QUANTITY, \
     QUESTION_ID_LENGTH, ANSWER_OPTION_ID_LENGTH, TITLE_LENGTH, QUESTION_LENGTH, ANSWER_OPTION_LENGTH
 from tgbot.services.service_functions import generate_random_id, parse_questions_text, parse_share_link

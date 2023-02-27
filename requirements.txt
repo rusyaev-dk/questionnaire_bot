@@ -9,3 +9,4 @@ jsonfield
 psycopg2-binary
 borb
 openpyxl
+redis

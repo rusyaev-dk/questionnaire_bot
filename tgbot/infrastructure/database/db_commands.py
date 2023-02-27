@@ -2,8 +2,8 @@
 from asyncpg import UniqueViolationError
 from sqlalchemy import and_
 
-from tgbot.services.database.db_gino import db
-from tgbot.services.database.db_models import User, Questionnaire, Question, AnswerOption, UserAnswer, \
+from tgbot.infrastructure.database.db_gino import db
+from tgbot.infrastructure.database.db_models import User, Questionnaire, Question, AnswerOption, UserAnswer, \
     PassedQuestionnaire, CreatedQuestionnaire
 
 """ ____________Create functions____________ """

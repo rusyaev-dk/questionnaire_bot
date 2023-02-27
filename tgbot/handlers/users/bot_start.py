@@ -8,63 +8,39 @@ from aiogram.dispatcher.filters import CommandStart
 from aiogram.types import ReplyKeyboardRemove
 from aiogram.utils.markdown import quote_html
 
-from tgbot.keyboards.qe_reply_kbs import main_menu_kb, email_accept_kb
+from tgbot.keyboards.qe_reply_kbs import main_menu_kb
 from tgbot.keyboards.qe_inline_kbs import replay_qe_approve_kb, replay_qe_approve_callback, \
     replay_approves, parse_answer_options_kb, pass_qe_approve_kb, pass_qe_approve_callback, pass_qe_approves
 from tgbot.misc.states import PassQe, UserEmail
-from tgbot.misc.throttling_function import rate_limit
-from tgbot.services.database import db_commands
-from tgbot.services.database.db_commands import increase_qe_started_by
+from tgbot.middlewares.throttling import rate_limit
+from tgbot.infrastructure.database import db_commands
 
 from tgbot.services.service_functions import parse_answer_options, get_average_completion_time
 
 
-@rate_limit(2)
+@rate_limit(2, key="start")
 async def bot_start(message: types.Message, state: FSMContext):
-    err_code = await db_commands.add_user(id=message.from_user.id, name=message.from_user.full_name)
-    if err_code == 0:
-        text = (f"🔹 Здравствуйте, {message.from_user.full_name}! С помощью этого бота Вы сможете создавать и проходить "
-                f"различные опросы. На данный момент у бота базовый функционал, который в дальнейшем будет расширяться."
-                f"\n\n📧 Пожалуйста, отправьте <b>адрес своей электронной почты</b> для обратной связи с создателями "
-                f"других опросов:")
-        msg = await message.answer(text=text, reply_markup=email_accept_kb)
-        await UserEmail.GetEmail.set()
-        await state.update_data(msg_id=msg.message_id)
-
-    elif message.text == "/restart" or message.text == "/start":
-        state_name = await state.get_state()
-        if state_name:
-            if "CreateQe" in state_name:
-                await message.answer("❌ Создание опроса отменено. ♻️ Бот перезапущен.\nГлавное меню:",
-                                     reply_markup=main_menu_kb)
-            elif "PassQe" in state_name:
-                await message.answer("❌ Прохождение опроса отменено. ♻️ Бот перезапущен.\nГлавное меню:",
-                                     reply_markup=main_menu_kb)
-            else:
-                await message.answer("♻️ Бот перезапущен. Главное меню:", reply_markup=main_menu_kb)
+    state_name = await state.get_state()
+    if state_name:
+        if "CreateQe" in state_name:
+            await message.answer("❌ Создание опроса отменено. ♻️ Бот перезапущен.\nГлавное меню:",
+                                 reply_markup=main_menu_kb)
+        elif "PassQe" in state_name:
+            await message.answer("❌ Прохождение опроса отменено. ♻️ Бот перезапущен.\nГлавное меню:",
+                                 reply_markup=main_menu_kb)
         else:
             await message.answer("♻️ Бот перезапущен. Главное меню:", reply_markup=main_menu_kb)
+    else:
+        await message.answer("♻️ Бот перезапущен. Главное меню:", reply_markup=main_menu_kb)
 
-        await state.reset_data()
-        await state.finish()
+    await state.reset_data()
+    await state.finish()
 
 
-@rate_limit(2)
+@rate_limit(2, key="start")
 async def deeplink_bot_start(message: types.Message, state: FSMContext):
     qe_id = message.get_args()
-
-    err_code = await db_commands.add_user(id=message.from_user.id, name=message.from_user.full_name)
-    if err_code == 0:
-        text = (f"🔹 Здравствуйте, {message.from_user.full_name}! С помощью этого бота Вы сможете создавать и проходить "
-                f"различные опросы. На данный момент у бота базовый функционал, который в дальнейшем будет расширяться."
-                f"\n\n📧 Прежде чем пройти опрос, пожалуйста, отправьте <b>адрес своей электронной почты</b> для "
-                f"обратной связи с создателями других опросов:")
-        msg = await message.answer(text=text, reply_markup=email_accept_kb)
-        await db_commands.add_user(id=message.from_user.id, name=message.from_user.full_name)
-        await UserEmail.GetEmail.set()
-        await state.update_data(msg_id=msg.message_id, qe_id=qe_id, flag=1)
-
-    elif len(qe_id) == 10:
+    if len(qe_id) == 10:
         questionnaire = await db_commands.select_questionnaire(qe_id=qe_id)
         if questionnaire:
             if questionnaire.is_active == "true":
@@ -98,28 +74,34 @@ async def deeplink_bot_start(message: types.Message, state: FSMContext):
 @rate_limit(1)
 async def get_user_email(message: types.Message, state: FSMContext):
     data = await state.get_data()
-    flag = data.get("flag")
+    flag = int(data.get("flag"))
 
     if message.text == "❌ Продолжить без почты":
         email = message.from_user.full_name
         if email is None:
             email = "Отсутствует"
         await db_commands.update_user_email(user_id=message.from_user.id, email=email)
-        markup = main_menu_kb
         if flag:
-            markup = None
-        await message.answer("📧 Вы сможете добавить электронную почту позже в разделе \"Мой профиль\". Главное меню:",
-                             reply_markup=markup)
+            await message.answer("📧 Вы сможете добавить электронную почту позже в разделе \"Мой профиль\".",
+                                 reply_markup=ReplyKeyboardRemove())
+        else:
+            await message.answer("📧 Вы сможете добавить электронную почту позже в разделе \"Мой профиль\"."
+                                 "\nГлавное меню:", reply_markup=main_menu_kb)
+
     elif "@" not in message.text or "." not in message.text:
         await message.answer("❗️ Введите корректный адрес электронной почты.")
         return
+
     else:
         await db_commands.update_user_email(user_id=message.from_user.id, email=message.text)
-        await message.answer("✅ Отлично, Ваши контактные данные сохранены. Вы можете изменить адрес своей электронной "
-                             "почты позже в разделе \"Мой профиль\".", reply_markup=main_menu_kb)
-
-    msg_id = data.get("msg_id")
-    await message.bot.delete_message(chat_id=message.from_user.id, message_id=msg_id)
+        if flag:
+            await message.answer("✅ Отлично, Ваши контактные данные сохранены. Вы можете изменить адрес своей "
+                                 "электронной почты позже в разделе \"Мой профиль\".",
+                                 reply_markup=ReplyKeyboardRemove())
+        else:
+            await message.answer("✅ Отлично, Ваши контактные данные сохранены. Вы можете изменить адрес своей "
+                                 "электронной почты позже в разделе \"Мой профиль\".\nГлавное меню:",
+                                 reply_markup=main_menu_kb)
 
     if flag:
         qe_id = data.get("qe_id")
@@ -166,7 +148,7 @@ async def pass_qe_approve(call: types.CallbackQuery, callback_data: dict, state:
 
         questionnaire = await db_commands.select_questionnaire(qe_id=qe_id)
         await db_commands.increase_link_clicks(creator_id=questionnaire.creator_id)
-        await increase_qe_started_by(qe_id=qe_id)
+        await db_commands.increase_qe_started_by(qe_id=qe_id)
         questions = await db_commands.select_questions(qe_id=qe_id)
         question = questions[0]
 

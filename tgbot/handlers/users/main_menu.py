@@ -7,17 +7,17 @@ from tgbot.keyboards.qe_inline_kbs import qe_list_kb, user_profile_menu_kb, user
 from tgbot.keyboards.qe_reply_kbs import main_menu_kb
 from tgbot.misc.dependences import CREATED_GUIDE_MESSAGE, PASSED_GUIDE_MESSAGE
 from tgbot.misc.states import CreatedQeStatistics, PassedQeStatistics, CreateQe, UserProfileMenu
-from tgbot.misc.throttling_function import rate_limit
-from tgbot.services.database import db_commands
+from tgbot.middlewares.throttling import rate_limit
+from tgbot.infrastructure.database import db_commands
 
 
-@rate_limit(3)
+@rate_limit(2, key="menu")
 async def create_questionnaire(message: types.Message):
     await message.answer("🏷 Введите <b>название</b> опроса:", reply_markup=ReplyKeyboardRemove())
     await CreateQe.Title.set()
 
 
-@rate_limit(2)
+@rate_limit(2, key="menu")
 async def user_created_questionnaires(message: types.Message, state: FSMContext):
     created_qes = await db_commands.select_user_created_qes(creator_id=message.from_user.id)
     if len(created_qes) > 0:
@@ -31,7 +31,7 @@ async def user_created_questionnaires(message: types.Message, state: FSMContext)
         await message.answer("📂 У Вас нет созданных опросов.")
 
 
-@rate_limit(2)
+@rate_limit(2, key="menu")
 async def user_passed_questionnaires(message: types.Message, state: FSMContext):
     passed_qes = await db_commands.select_user_passed_qes(respondent_id=message.from_user.id)
     if len(passed_qes) > 0:
@@ -50,12 +50,12 @@ async def user_passed_questionnaires(message: types.Message, state: FSMContext):
             await message.answer("📭 Вы ещё не проходили опросы.")
 
 
-@rate_limit(2)
-async def user_profile(message: types.Message):
-    await message.answer("📍 В этом разделе предоставляется статистика профиля и возможность изменить "
-                         "контактные данные", reply_markup=ReplyKeyboardRemove())
-
+@rate_limit(2, key="menu")
+async def user_profile(message: types.Message, state: FSMContext):
+    main_msg = await message.answer("📍 В этом разделе предоставляется статистика профиля и возможность изменить "
+                                    "контактные данные.", reply_markup=ReplyKeyboardRemove())
     await UserProfileMenu.SelectOption.set()
+    await state.update_data(main_msg_id=main_msg.message_id)
 
     user = await db_commands.select_user(id=message.from_user.id)
     created_qes = await db_commands.select_user_created_qes(creator_id=message.from_user.id)
@@ -93,11 +93,14 @@ async def user_profile(message: types.Message):
 async def select_user_profile_option(call: types.CallbackQuery, callback_data: dict, state: FSMContext):
     option = callback_data.get("option")
     if option == "change_email":
-        await call.bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
+        await call.message.delete()
         await call.message.answer("📩 Введите новый адрес электронной почты:", reply_markup=ReplyKeyboardRemove())
         await UserProfileMenu.UpdateEmail.set()
     elif option == "main_menu":
-        await call.bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
+        data = await state.get_data()
+        main_msg_id = data.get("main_msg_id")
+        await call.bot.delete_message(chat_id=call.from_user.id, message_id=main_msg_id)
+        await call.message.delete()
         await call.message.answer("Главное меню:", reply_markup=main_menu_kb)
         await state.reset_data()
         await state.finish()

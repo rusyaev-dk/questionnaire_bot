@@ -2,13 +2,13 @@ from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 
 from tgbot.keyboards.qe_reply_kbs import main_menu_kb
-from tgbot.misc.throttling_function import rate_limit
 
-from tgbot.services.database import db_commands
+from tgbot.infrastructure.database import db_commands
+from tgbot.middlewares.throttling import rate_limit
 from tgbot.misc.dependences import ADMIN_USERNAME
 
 
-@rate_limit(2)
+@rate_limit(2, key="commands")
 async def get_main_menu(message: types.Message, state: FSMContext):
     await db_commands.add_user(id=message.from_user.id, name=message.from_user.full_name)
     state_name = await state.get_state()
@@ -26,7 +26,7 @@ async def get_main_menu(message: types.Message, state: FSMContext):
     await state.finish()
 
 
-@rate_limit(2)
+@rate_limit(2, key="commands")
 async def cancel_action(message: types.Message, state: FSMContext):
     state_name = await state.get_state()
     if state_name:
@@ -43,13 +43,13 @@ async def cancel_action(message: types.Message, state: FSMContext):
     await state.finish()
 
 
-@rate_limit(2)
+@rate_limit(2, key="commands")
 async def get_help(message: types.Message):
     await message.answer("🛠 Если что-то пошло не так, нажмите <b>/restart</b>, чтобы перезапустить бота. "
                          f"Пожалуйста, сообщите об ошибке разработчику: <b>{ADMIN_USERNAME}</b>")
 
 
-@rate_limit(3)
+@rate_limit(2, key="commands")
 async def get_bot_statistics(message: types.Message):
     total_users = await db_commands.count_users()
     total_qes = await db_commands.count_qes()

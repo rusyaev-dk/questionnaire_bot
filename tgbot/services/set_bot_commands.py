@@ -1,18 +1,30 @@
 from aiogram import types, Dispatcher
+from aiogram.types import BotCommand
+
+from tgbot.config import load_config
 
 
-async def set_default_commands(dp):
+async def set_bot_commands(dp):
+    default_commands = {
+        "menu": "Главное меню",
+        "cancel": "Отмена",
+        "restart": "Перезапустить бота",
+        "help": "Помощь"
+    }
+
+    admin_commands = {
+        "statistics": "Статистика бота",
+        "notify_users": "Уведомить пользователей",
+        "menu": "Главное меню",
+        "cancel": "Отмена",
+        "restart": "Перезапустить бота",
+        "help": "Помощь"
+    }
+
     await dp.bot.set_my_commands(
-        [
-            types.BotCommand("menu", "Главное меню"),
-            types.BotCommand("cancel", "Отмена"),
-            types.BotCommand("restart", "Перезапустить бота"),
-            types.BotCommand("help", "Помощь"),
-        ]
-    )
+        [BotCommand(name, value) for name, value in default_commands.items()],
+        scope=types.BotCommandScopeDefault())
 
-    # Вариант, когда необходимо более упорядоченно всё оформить:
-    # default_commands = {
-    #     "start": "Перезапустить бота",
-    #     "help": "Помощь"
-    # }
+    await dp.bot.set_my_commands(
+        [BotCommand(name, value) for name, value in admin_commands.items()],
+        scope=types.BotCommandScopeChat(chat_id=load_config().tg_bot.admin_ids[0]))

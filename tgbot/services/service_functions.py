@@ -4,8 +4,8 @@ import string
 from aiogram.utils.markdown import quote_html
 
 from tgbot.misc.dependences import ANSWER_LETTERS, BOT_USERNAME
-from tgbot.services.database import db_commands
-from tgbot.services.database.db_models import Questionnaire
+from tgbot.infrastructure.database import db_commands
+from tgbot.infrastructure.database.db_models import Questionnaire
 
 
 def generate_random_id(length: int):

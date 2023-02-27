@@ -8,8 +8,8 @@ from tgbot.keyboards.qe_reply_kbs import main_menu_kb
 from tgbot.keyboards.qe_inline_kbs import parse_answer_options_kb, answers_approve_kb, \
     answer_options_callback, answers_approve_callback, answers_approves
 from tgbot.misc.states import PassQe
-from tgbot.misc.throttling_function import rate_limit
-from tgbot.services.database import db_commands
+from tgbot.middlewares.throttling import rate_limit
+from tgbot.infrastructure.database import db_commands
 from tgbot.misc.dependences import USER_ANSWER_ID_LENGTH, ANSWER_LENGTH
 from tgbot.services.service_functions import parse_answers_text, parse_answer_options, generate_random_id
 

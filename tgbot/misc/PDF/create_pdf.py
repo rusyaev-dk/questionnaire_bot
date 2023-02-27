@@ -1,8 +1,8 @@
 from decimal import Decimal
 from pathlib import Path
 
-from borb.pdf import SingleColumnLayout, FlexibleColumnWidthTable, X11Color, Alignment, Image, FixedColumnWidthTable, \
-    TableCell, UnorderedList, HexColor
+from borb.pdf import SingleColumnLayout, FlexibleColumnWidthTable, X11Color, Image, FixedColumnWidthTable, \
+    TableCell, UnorderedList
 from borb.pdf import PageLayout
 from borb.pdf import Paragraph
 from borb.pdf import Document
@@ -11,8 +11,8 @@ from borb.pdf import PDF
 from borb.pdf.canvas.font.font import Font
 from borb.pdf.canvas.font.simple_font.true_type_font import TrueTypeFont
 
-from tgbot.services.database import db_commands
-from tgbot.services.database.db_models import Questionnaire
+from tgbot.infrastructure.database import db_commands
+from tgbot.infrastructure.database.db_models import Questionnaire
 
 
 async def create_pdf_file(questionnaire: Questionnaire):

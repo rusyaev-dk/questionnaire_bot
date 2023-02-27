@@ -9,9 +9,9 @@ from tgbot.keyboards.qe_reply_kbs import main_menu_kb
 from tgbot.keyboards.additional_inline_kbs import notify_users_approve_callback, notify_users_approves, \
     notify_users_approve_kb
 from tgbot.misc.states import NotifyUsers
-from tgbot.misc.throttling_function import rate_limit
+from tgbot.middlewares.throttling import rate_limit
 from tgbot.services.broadcast_functions import send_text, send_photo, send_document
-from tgbot.services.database import db_commands
+from tgbot.infrastructure.database import db_commands
 
 
 @rate_limit(5)

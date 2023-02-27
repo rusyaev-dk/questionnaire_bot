@@ -11,7 +11,7 @@ from tgbot.keyboards.qe_inline_kbs import created_qe_statistics_kb, qe_list_call
 from tgbot.misc.Excel.create_xlsx import create_xlsx_file
 from tgbot.misc.states import CreatedQeStatistics
 
-from tgbot.services.database import db_commands
+from tgbot.infrastructure.database import db_commands
 from tgbot.misc.dependences import PASSED_BY_MINIMUM
 from tgbot.services.service_functions import created_qe_info, statistics_qe_text
 

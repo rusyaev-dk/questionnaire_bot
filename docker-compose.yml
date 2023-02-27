@@ -32,7 +32,17 @@ services:
     - tg_bot
     depends_on:
       - db
+  redis:
+    container_name: redis
+    image: redis:alpine
+    volumes:
+      - $PWD/redis-data:/var/lib/redis
 
+    ports:
+      - "6379:6379"
+    networks:
+      - tg_bot
+    restart: always
 
 networks:
   tg_bot:
